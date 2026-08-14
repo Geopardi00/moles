@@ -20,9 +20,22 @@ func _run_test() -> void:
 	await get_tree().process_frame
 
 	var controller := level.get_node("SimulationController")
+	var level_controller := level.get_node("LevelController")
+	var camera_rig := level.get_node("CameraRig")
 	var spawner := level.get_node("World/CreatureSpawner")
 	var creature_container := level.get_node("World/Creatures")
 	var failures: Array[String] = []
+	var camera := camera_rig.get_node("Camera2D") as Camera2D
+	var half_view: Vector2 = camera_rig.get_viewport_rect().size * 0.5 / camera.zoom
+	var bounds: Rect2 = camera_rig.movement_bounds
+	var expected_x := clampf(camera_rig.global_position.x, bounds.position.x + half_view.x, bounds.end.x - half_view.x)
+	var expected_y := bounds.get_center().y if half_view.y * 2.0 > bounds.size.y else clampf(
+		camera_rig.global_position.y,
+		bounds.position.y + half_view.y,
+		bounds.end.y - half_view.y
+	)
+	if not camera_rig.global_position.is_equal_approx(Vector2(expected_x, expected_y)):
+		failures.append("Camera startup position was not clamped to the viewport and level bounds.")
 
 	# Confirm pause freezes pausable world nodes without stopping always-processing controls.
 	await get_tree().physics_frame
@@ -47,13 +60,14 @@ func _run_test() -> void:
 
 	if spawner.spawned_count != spawner.spawn_count:
 		failures.append("Expected %d spawns, got %d." % [spawner.spawn_count, spawner.spawned_count])
-	if level.saved_count != spawner.spawn_count:
-		failures.append("Expected %d rescues, got %d." % [spawner.spawn_count, level.saved_count])
-	if level.lost_count != 0:
-		failures.append("Expected no losses, got %d." % level.lost_count)
+	if level_controller.saved_count != spawner.spawn_count:
+		failures.append("Expected %d rescues, got %d." % [spawner.spawn_count, level_controller.saved_count])
+	if level_controller.lost_count != 0:
+		failures.append("Expected no losses, got %d." % level_controller.lost_count)
 	if creature_container.get_child_count() != 0:
 		failures.append("Expected no remaining creatures, got %d." % creature_container.get_child_count())
 
+	controller.set_pause_locked(false)
 	controller.set_paused(false)
 	controller.set_speed(1.0)
 	if failures.is_empty():

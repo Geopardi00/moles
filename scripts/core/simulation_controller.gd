@@ -9,6 +9,7 @@ const VALID_SPEEDS: Array[float] = [1.0, 2.0, 4.0]
 @export_enum("1x:1", "2x:2", "4x:4") var initial_speed: int = 1
 
 var speed_multiplier: float = 1.0
+var pause_locked: bool = false
 
 
 func _ready() -> void:
@@ -31,14 +32,24 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func toggle_pause() -> void:
+	if pause_locked:
+		return
 	set_paused(not get_tree().paused)
 
 
 func set_paused(should_pause: bool) -> void:
+	if pause_locked and not should_pause:
+		return
 	if get_tree().paused == should_pause:
 		return
 	get_tree().paused = should_pause
 	pause_changed.emit(should_pause)
+
+
+func set_pause_locked(should_lock: bool) -> void:
+	if should_lock and not get_tree().paused:
+		set_paused(true)
+	pause_locked = should_lock
 
 
 func set_speed(multiplier: float) -> void:

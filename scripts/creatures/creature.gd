@@ -12,9 +12,9 @@ enum State {
 	DEAD,
 }
 
-@export_range(10.0, 400.0, 1.0, "or_greater") var walk_speed: float = 100.0
-@export_range(100.0, 4000.0, 10.0, "or_greater") var gravity: float = 1200.0
-@export_range(100.0, 3000.0, 10.0, "or_greater") var maximum_fall_speed: float = 900.0
+@export_range(10.0, 600.0, 1.0, "or_greater") var walk_speed: float = 166.667
+@export_range(100.0, 5000.0, 10.0, "or_greater") var gravity: float = 2000.0
+@export_range(100.0, 4000.0, 10.0, "or_greater") var maximum_fall_speed: float = 1500.0
 @export var show_state_label: bool = false
 
 var direction: int = 1

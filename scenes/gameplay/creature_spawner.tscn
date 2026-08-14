@@ -9,13 +9,13 @@ creature_scene = ExtResource("2_creature")
 
 [node name="Entrance" type="Polygon2D" parent="."]
 color = Color(0.18, 0.23, 0.26, 1)
-polygon = PackedVector2Array(-22, -30, 22, -30, 22, 18, -22, 18)
+polygon = PackedVector2Array(-36.667, -50, 36.667, -50, 36.667, 30, -36.667, 30)
 
 [node name="EntranceInset" type="Polygon2D" parent="."]
 color = Color(0.05, 0.07, 0.08, 1)
-polygon = PackedVector2Array(-15, -23, 15, -23, 15, 18, -15, 18)
+polygon = PackedVector2Array(-25, -38.333, 25, -38.333, 25, 30, -25, 30)
 
 [node name="DirectionArrow" type="Polygon2D" parent="."]
-position = Vector2(0, -39)
+position = Vector2(0, -65)
 color = Color(0.95, 0.82, 0.28, 1)
-polygon = PackedVector2Array(-8, -4, 4, -4, 4, -9, 13, 0, 4, 9, 4, 4, -8, 4)
+polygon = PackedVector2Array(-13.333, -6.667, 6.667, -6.667, 6.667, -15, 21.667, 0, 6.667, 15, 6.667, 6.667, -13.333, 6.667)

@@ -89,19 +89,27 @@ The final terrain representation is deliberately undecided. A fine-grid/TileMapL
 
 ## 7. Current development milestones
 
-### Milestone 0 — Autonomous Creature Simulation (current)
+### Milestone 0 — Autonomous Creature Simulation (complete)
 
 Deliver a reusable creature, deterministic walking/falling/landing/wall behavior, non-colliding crowds, configurable spawner, exit counter, kill zone, scrolling test level, independent camera, pause, and 1×/2×/4× speed controls using placeholder visuals and static terrain.
 
 Success criterion: 30 creatures run around the movement test level for an extended period with predictable, stable behavior. An automated 30-creature smoke test supplements the in-editor visual test.
 
-Status: implemented on 2026-08-14. The automated pause and 30-creature route test passes; manual visual sign-off in the editor remains the final acceptance check.
+Status: completed on 2026-08-14. The automated pause and 30-creature route test passes, and the in-editor manual test has been accepted.
 
 Excluded: abilities, destructible terrain, liquids, final art, medals, and fall damage.
 
-### Milestone 1 — Level Loop
+### Milestone 1 — Level Loop (current)
 
 Add total/saved/required counts, data-driven level configuration, completion, failure, and restart. This begins only after Milestone 0 is reliable.
+
+Status: implemented on 2026-08-14. Automated coverage passes for data-driven requirements, completion, early failure, outcome pause-locking, and a full scene restart. Manual visual sign-off remains.
+
+Confirmed outcome rules:
+
+- A level normally completes only after every creature has resolved as saved or lost and the rescue requirement has been met. Reaching the minimum early does not discard opportunities to save more creatures.
+- A level fails early when losses make the rescue requirement mathematically impossible.
+- Completed and failed simulations pause and remain locked until restart.
 
 ### Milestone 2 — Ability Assignment Foundation
 
@@ -147,6 +155,11 @@ In a separate experimental scene, compare fine-cell terrain and a custom mask/gr
 - Simulation rates use `Engine.time_scale` values of 1, 2, and 4. Pause uses `SceneTree.paused`, not a zero time scale.
 - Camera travel is measured using real elapsed time so camera speed does not change with simulation speed.
 - Milestone 0 uses scene-local simulation control. A global/autoload service is deferred until multiple level scenes demonstrate that it is necessary.
+- Population, spawn settings, and rescue requirements live in a per-level `LevelDefinition` resource.
+- Rescue requirements may be authored as an exact count or a percentage; percentage requirements round upward to a whole creature.
+- A reusable `LevelController` owns progress and outcome rules. Level scenes connect world events to it, while the HUD only presents its state and requests actions.
+- Restart reloads the current level scene and restores an unpaused 1× simulation with fresh counters.
+- The gameplay design resolution is 1920×1080, with `Camera2D.zoom` remaining at `Vector2(1, 1)` for the baseline view. World geometry, creature tuning, triggers, and camera bounds are authored directly for that coordinate system rather than using a scaled physics parent.
 
 ## 11. Undecided technical experiments
 
@@ -225,3 +238,7 @@ MovementTest (Node2D)
 - 2026-08-14: Added an automated 30-creature smoke target to complement manual visual validation.
 - 2026-08-14: Kept simulation control scene-local for the first vertical slice; autoload promotion remains a later evidence-based decision.
 - 2026-08-14: Implemented the Milestone 0 movement lab and passed the automated pause plus 30-creature spawn/navigation/rescue test.
+- 2026-08-14: Accepted the Milestone 0 manual test and created Git checkpoint `5cf7a1c` on `main`.
+- 2026-08-14: Implemented the Milestone 1 data-driven level loop, including count/percentage rescue requirements, completion, early failure, outcome locking, and restart.
+- 2026-08-14: Confirmed that normal completion waits for all creatures to resolve so later rescue ranks remain meaningful.
+- 2026-08-14: Standardized gameplay framing on 1920×1080 at camera zoom 1.0 and rescaled the movement lab directly into that coordinate system.

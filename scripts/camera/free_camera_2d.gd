@@ -1,8 +1,8 @@
 class_name FreeCamera2D
 extends Node2D
 
-@export_range(100.0, 2000.0, 10.0, "or_greater") var pan_speed: float = 650.0
-@export var movement_bounds: Rect2 = Rect2(0.0, 0.0, 2400.0, 900.0)
+@export_range(100.0, 3000.0, 10.0, "or_greater") var pan_speed: float = 1083.333
+@export var movement_bounds: Rect2 = Rect2(0.0, 0.0, 4000.0, 1500.0)
 
 @onready var camera: Camera2D = $Camera2D
 
@@ -12,6 +12,9 @@ var _last_tick_usec: int = 0
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_last_tick_usec = Time.get_ticks_usec()
+	# Resolve the authored position against the actual viewport before the first
+	# input. This keeps startup framing correct when the project resolution changes.
+	_clamp_to_bounds()
 
 
 func _process(_delta: float) -> void:
