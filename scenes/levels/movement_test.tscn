@@ -1,0 +1,145 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/levels/movement_test.gd" id="1_level"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/creature_spawner.tscn" id="2_spawner"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/exit_zone.tscn" id="3_exit"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/kill_zone.tscn" id="4_kill"]
+[ext_resource type="Script" path="res://scripts/core/simulation_controller.gd" id="5_sim"]
+[ext_resource type="Script" path="res://scripts/camera/free_camera_2d.gd" id="6_camera"]
+[ext_resource type="PackedScene" path="res://scenes/ui/simulation_hud.tscn" id="7_hud"]
+
+[sub_resource type="RectangleShape2D" id="Rectangle_start"]
+size = Vector2(700, 40)
+
+[sub_resource type="RectangleShape2D" id="Rectangle_wall"]
+size = Vector2(40, 140)
+
+[sub_resource type="RectangleShape2D" id="Rectangle_lower"]
+size = Vector2(1700, 40)
+
+[sub_resource type="RectangleShape2D" id="Rectangle_far"]
+size = Vector2(560, 40)
+
+[node name="MovementTest" type="Node2D"]
+script = ExtResource("1_level")
+
+[node name="World" type="Node2D" parent="."]
+
+[node name="Background" type="Polygon2D" parent="World"]
+z_index = -20
+color = Color(0.075, 0.105, 0.13, 1)
+polygon = PackedVector2Array(0, 0, 2400, 0, 2400, 900, 0, 900)
+
+[node name="BackdropHillA" type="Polygon2D" parent="World"]
+z_index = -15
+color = Color(0.1, 0.16, 0.17, 1)
+polygon = PackedVector2Array(0, 510, 0, 300, 260, 160, 540, 340, 760, 220, 1050, 510)
+
+[node name="BackdropHillB" type="Polygon2D" parent="World"]
+z_index = -16
+color = Color(0.09, 0.13, 0.18, 1)
+polygon = PackedVector2Array(900, 600, 1140, 270, 1380, 390, 1650, 170, 2020, 480, 2400, 250, 2400, 650)
+
+[node name="Terrain" type="Node2D" parent="World"]
+
+[node name="StartPlatform" type="StaticBody2D" parent="World/Terrain"]
+position = Vector2(550, 300)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Visual" type="Polygon2D" parent="World/Terrain/StartPlatform"]
+color = Color(0.38, 0.29, 0.2, 1)
+polygon = PackedVector2Array(-350, -20, 350, -20, 350, 20, -350, 20)
+
+[node name="TopEdge" type="Polygon2D" parent="World/Terrain/StartPlatform"]
+color = Color(0.47, 0.72, 0.35, 1)
+polygon = PackedVector2Array(-350, -20, 350, -20, 350, -12, -350, -12)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Terrain/StartPlatform"]
+shape = SubResource("Rectangle_start")
+
+[node name="TurnaroundWall" type="StaticBody2D" parent="World/Terrain"]
+position = Vector2(820, 210)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Visual" type="Polygon2D" parent="World/Terrain/TurnaroundWall"]
+color = Color(0.31, 0.34, 0.36, 1)
+polygon = PackedVector2Array(-20, -70, 20, -70, 20, 70, -20, 70)
+
+[node name="Stripe" type="Polygon2D" parent="World/Terrain/TurnaroundWall"]
+color = Color(0.58, 0.61, 0.62, 1)
+polygon = PackedVector2Array(-20, -58, 20, -46, 20, -32, -20, -44)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Terrain/TurnaroundWall"]
+shape = SubResource("Rectangle_wall")
+
+[node name="LowerPlatform" type="StaticBody2D" parent="World/Terrain"]
+position = Vector2(750, 540)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Visual" type="Polygon2D" parent="World/Terrain/LowerPlatform"]
+color = Color(0.34, 0.25, 0.18, 1)
+polygon = PackedVector2Array(-850, -20, 850, -20, 850, 20, -850, 20)
+
+[node name="TopEdge" type="Polygon2D" parent="World/Terrain/LowerPlatform"]
+color = Color(0.43, 0.67, 0.32, 1)
+polygon = PackedVector2Array(-850, -20, 850, -20, 850, -11, -850, -11)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Terrain/LowerPlatform"]
+shape = SubResource("Rectangle_lower")
+
+[node name="FarPlatform" type="StaticBody2D" parent="World/Terrain"]
+position = Vector2(2030, 700)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Visual" type="Polygon2D" parent="World/Terrain/FarPlatform"]
+color = Color(0.31, 0.32, 0.34, 1)
+polygon = PackedVector2Array(-280, -20, 280, -20, 280, 20, -280, 20)
+
+[node name="TopEdge" type="Polygon2D" parent="World/Terrain/FarPlatform"]
+color = Color(0.48, 0.51, 0.53, 1)
+polygon = PackedVector2Array(-280, -20, 280, -20, 280, -12, -280, -12)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Terrain/FarPlatform"]
+shape = SubResource("Rectangle_far")
+
+[node name="Instructions" type="Label" parent="World"]
+position = Vector2(346, 110)
+theme_override_colors/font_color = Color(0.86, 0.9, 0.91, 1)
+theme_override_colors/font_outline_color = Color(0.04, 0.06, 0.07, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 22
+text = "Wall → turn around → ledge → fall → land → exit"
+
+[node name="Creatures" type="Node2D" parent="World"]
+
+[node name="CreatureSpawner" parent="World" instance=ExtResource("2_spawner")]
+position = Vector2(500, 250)
+spawn_count = 30
+spawn_interval = 0.2
+initial_direction = 1
+creature_container_path = NodePath("../Creatures")
+
+[node name="ExitZone" parent="World" instance=ExtResource("3_exit")]
+position = Vector2(65, 475)
+
+[node name="KillZone" parent="World" instance=ExtResource("4_kill")]
+position = Vector2(1200, 940)
+
+[node name="SimulationController" type="Node" parent="."]
+process_mode = 3
+script = ExtResource("5_sim")
+
+[node name="CameraRig" type="Node2D" parent="."]
+process_mode = 3
+position = Vector2(576, 324)
+script = ExtResource("6_camera")
+movement_bounds = Rect2(0, 0, 2400, 900)
+
+[node name="Camera2D" type="Camera2D" parent="CameraRig"]
+
+[node name="HUD" parent="." instance=ExtResource("7_hud")]
+simulation_controller_path = NodePath("../SimulationController")

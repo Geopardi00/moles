@@ -1,0 +1,86 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/simulation_hud.gd" id="1_hud"]
+
+[node name="HUD" type="CanvasLayer"]
+process_mode = 3
+script = ExtResource("1_hud")
+
+[node name="Panel" type="PanelContainer" parent="."]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 292.0
+offset_bottom = 190.0
+
+[node name="Margin" type="MarginContainer" parent="Panel"]
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 12
+
+[node name="Content" type="VBoxContainer" parent="Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 7
+
+[node name="Title" type="Label" parent="Panel/Margin/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "MOVEMENT LAB"
+
+[node name="Counts" type="HBoxContainer" parent="Panel/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TotalLabel" type="Label" parent="Panel/Margin/Content/Counts"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Spawned: 0 / 30"
+
+[node name="SavedLabel" type="Label" parent="Panel/Margin/Content/Counts"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Saved: 0"
+
+[node name="LostLabel" type="Label" parent="Panel/Margin/Content/Counts"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Lost: 0"
+
+[node name="SimulationLabel" type="Label" parent="Panel/Margin/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.82, 0.28, 1)
+text = "RUNNING  •  1×"
+
+[node name="Controls" type="HBoxContainer" parent="Panel/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="PauseButton" type="Button" parent="Panel/Margin/Content/Controls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Pause [P]"
+
+[node name="Speed1Button" type="Button" parent="Panel/Margin/Content/Controls"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+text = "1×"
+
+[node name="Speed2Button" type="Button" parent="Panel/Margin/Content/Controls"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+text = "2×"
+
+[node name="Speed4Button" type="Button" parent="Panel/Margin/Content/Controls"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+text = "4×"
+
+[node name="Help" type="Label" parent="Panel/Margin/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.76, 0.78, 1)
+theme_override_font_sizes/font_size = 12
+text = "WASD: pan camera   •   1 / 2 / 4: speed"

@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/gameplay/kill_zone.gd" id="1_kill"]
+
+[sub_resource type="RectangleShape2D" id="Rectangle_kill"]
+size = Vector2(2600, 80)
+
+[node name="KillZone" type="Area2D"]
+collision_layer = 8
+collision_mask = 2
+script = ExtResource("1_kill")
+
+[node name="WarningBand" type="Polygon2D" parent="."]
+color = Color(0.72, 0.16, 0.18, 0.55)
+polygon = PackedVector2Array(-1300, -40, 1300, -40, 1300, 40, -1300, 40)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("Rectangle_kill")
