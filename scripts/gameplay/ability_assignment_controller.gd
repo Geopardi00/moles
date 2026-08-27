@@ -4,21 +4,24 @@ extends Node
 ## Owns player ability selection, targeting, and limited-use inventory.
 
 signal selected_ability_changed(ability: Ability)
-signal inventory_changed(dig_remaining: int)
+signal inventory_changed(dig_remaining: int, build_remaining: int)
 signal ability_assigned(creature: Creature, ability: Ability)
 
 enum Ability {
 	NONE,
 	DIG,
+	BUILD,
 }
 
 const SELECTION_COLLISION_MASK := 1 << 4
 
 var selected_ability: Ability = Ability.NONE
 var dig_remaining: int = 0
+var build_remaining: int = 0
 var assignment_enabled: bool = true
 var hovered_creature: Creature
 var dig_target_validator: Callable
+var build_target_validator: Callable
 
 
 func _ready() -> void:
@@ -50,13 +53,18 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func begin_level(level_definition: LevelDefinition) -> void:
 	dig_remaining = maxi(level_definition.dig_ability_count, 0)
+	build_remaining = maxi(level_definition.build_ability_count, 0)
 	assignment_enabled = true
 	set_selected_ability(Ability.NONE)
-	inventory_changed.emit(dig_remaining)
+	inventory_changed.emit(dig_remaining, build_remaining)
 
 
 func set_dig_target_validator(validator: Callable) -> void:
 	dig_target_validator = validator
+
+
+func set_build_target_validator(validator: Callable) -> void:
+	build_target_validator = validator
 
 
 func toggle_dig_selection() -> void:
@@ -71,8 +79,22 @@ func is_dig_selected() -> bool:
 	return selected_ability == Ability.DIG
 
 
+func toggle_build_selection() -> void:
+	set_selected_ability(Ability.NONE if selected_ability == Ability.BUILD else Ability.BUILD)
+
+
+func select_build() -> void:
+	set_selected_ability(Ability.BUILD)
+
+
+func is_build_selected() -> bool:
+	return selected_ability == Ability.BUILD
+
+
 func set_selected_ability(ability: Ability) -> void:
 	if ability == Ability.DIG and (dig_remaining <= 0 or not assignment_enabled):
+		ability = Ability.NONE
+	elif ability == Ability.BUILD and (build_remaining <= 0 or not assignment_enabled):
 		ability = Ability.NONE
 	if selected_ability == ability:
 		return
@@ -120,23 +142,37 @@ func find_target_at_screen_position(screen_position: Vector2) -> Creature:
 func assign_selected_ability(creature: Creature) -> bool:
 	if not assignment_enabled or not _is_valid_target(creature):
 		return false
-	if selected_ability != Ability.DIG or dig_remaining <= 0:
-		return false
-	if not creature.begin_dig():
-		return false
-
-	dig_remaining -= 1
-	inventory_changed.emit(dig_remaining)
-	ability_assigned.emit(creature, Ability.DIG)
-	if dig_remaining == 0:
-		set_selected_ability(Ability.NONE)
-	return true
+	match selected_ability:
+		Ability.DIG:
+			if dig_remaining <= 0 or not creature.begin_dig():
+				return false
+			dig_remaining -= 1
+			inventory_changed.emit(dig_remaining, build_remaining)
+			ability_assigned.emit(creature, Ability.DIG)
+			if dig_remaining == 0:
+				set_selected_ability(Ability.NONE)
+			return true
+		Ability.BUILD:
+			if build_remaining <= 0 or not creature.begin_build():
+				return false
+			build_remaining -= 1
+			inventory_changed.emit(dig_remaining, build_remaining)
+			ability_assigned.emit(creature, Ability.BUILD)
+			if build_remaining == 0:
+				set_selected_ability(Ability.NONE)
+			return true
+	return false
 
 
 func _is_valid_target(creature: Creature) -> bool:
 	if not is_instance_valid(creature) or creature.current_state != Creature.State.WALKING:
 		return false
-	return dig_target_validator.is_null() or bool(dig_target_validator.call(creature))
+	match selected_ability:
+		Ability.DIG:
+			return dig_target_validator.is_null() or bool(dig_target_validator.call(creature))
+		Ability.BUILD:
+			return build_target_validator.is_null() or bool(build_target_validator.call(creature))
+	return false
 
 
 func _set_hovered_creature(creature: Creature) -> void:

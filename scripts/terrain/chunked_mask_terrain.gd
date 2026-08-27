@@ -6,6 +6,7 @@ extends Node2D
 enum InitialShape {
 	WAVY_GROUND,
 	SOLID_RECTANGLE,
+	EMPTY,
 }
 
 @export var grid_size: Vector2i = Vector2i(90, 48)
@@ -14,8 +15,10 @@ enum InitialShape {
 @export var terrain_color: Color = Color(0.4, 0.27, 0.15, 1.0)
 @export_range(1, 32, 1) var material_id: int = 1
 @export var initial_shape: InitialShape = InitialShape.WAVY_GROUND
+@export var top_surface_collision_only: bool = false
 
 var last_removed_cells: int = 0
+var last_added_cells: int = 0
 var last_rebuild_usec: int = 0
 var total_rebuild_usec: int = 0
 var last_rebuilt_chunks: int = 0
@@ -33,12 +36,17 @@ func reset_terrain() -> void:
 	_solid.resize(grid_size.x * grid_size.y)
 	_solid.fill(0)
 	for x in grid_size.x:
-		var surface_y := 0 if initial_shape == InitialShape.SOLID_RECTANGLE else _get_surface_cell_y(x)
+		var surface_y := (
+			grid_size.y
+			if initial_shape == InitialShape.EMPTY
+			else 0 if initial_shape == InitialShape.SOLID_RECTANGLE else _get_surface_cell_y(x)
+		)
 		for y in range(surface_y, grid_size.y):
 			_set_solid(Vector2i(x, y), true)
 	_rebuild_all_chunks()
 	queue_redraw()
 	last_removed_cells = 0
+	last_added_cells = 0
 	last_rebuilt_chunks = _chunk_bodies.size()
 	last_rebuild_usec = Time.get_ticks_usec() - started_usec
 	total_rebuild_usec = last_rebuild_usec
@@ -68,6 +76,36 @@ func excavate_circle(local_center: Vector2, radius: float) -> int:
 	last_rebuild_usec = Time.get_ticks_usec() - started_usec
 	total_rebuild_usec += last_rebuild_usec
 	return removed
+
+
+func fill_rectangle(local_rect: Rect2) -> int:
+	var started_usec := Time.get_ticks_usec()
+	var minimum := Vector2i(
+		floori(local_rect.position.x / cell_size),
+		floori(local_rect.position.y / cell_size)
+	)
+	var maximum := Vector2i(
+		ceili(local_rect.end.x / cell_size),
+		ceili(local_rect.end.y / cell_size)
+	)
+	var affected_chunks: Dictionary = {}
+	var added := 0
+	for x in range(maxi(minimum.x, 0), mini(maximum.x, grid_size.x)):
+		for y in range(maxi(minimum.y, 0), mini(maximum.y, grid_size.y)):
+			var cell := Vector2i(x, y)
+			if not _is_solid(cell):
+				_set_solid(cell, true)
+				affected_chunks[_cell_to_chunk(cell)] = true
+				added += 1
+	for chunk: Vector2i in affected_chunks:
+		_rebuild_chunk(chunk)
+	if added > 0:
+		queue_redraw()
+	last_added_cells = added
+	last_rebuilt_chunks = affected_chunks.size()
+	last_rebuild_usec = Time.get_ticks_usec() - started_usec
+	total_rebuild_usec += last_rebuild_usec
+	return added
 
 
 func get_solid_cell_count() -> int:
@@ -159,11 +197,11 @@ func _rebuild_chunk(chunk: Vector2i) -> void:
 				continue
 			if not _is_solid(cell + Vector2i.UP):
 				_append_unit_edge(horizontal_edges, y, x)
-			if not _is_solid(cell + Vector2i.DOWN):
+			if not top_surface_collision_only and not _is_solid(cell + Vector2i.DOWN):
 				_append_unit_edge(horizontal_edges, y + 1, x)
-			if not _is_solid(cell + Vector2i.LEFT):
+			if not top_surface_collision_only and not _is_solid(cell + Vector2i.LEFT):
 				_append_unit_edge(vertical_edges, x, y)
-			if not _is_solid(cell + Vector2i.RIGHT):
+			if not top_surface_collision_only and not _is_solid(cell + Vector2i.RIGHT):
 				_append_unit_edge(vertical_edges, x + 1, y)
 	_add_merged_contour_segments(body, horizontal_edges, true)
 	_add_merged_contour_segments(body, vertical_edges, false)

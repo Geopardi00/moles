@@ -142,11 +142,17 @@ Prove the complete puzzle loop in a small data-driven level: creatures remain tr
 
 Status: completed on 2026-08-27. The new `First Dig` level launches as the project main scene with 10 creatures, an 8-creature requirement, and 3 DIG uses. Automated coverage confirms that no creature reaches the exit before intervention, one DIG opens the persistent route, all 10 are rescued, completion locks the simulation, and restart restores terrain, inventory, counters, pause, and 1× speed. Manual visual and gameplay testing has been accepted.
 
+### Milestone 6 — BUILD Ability and Bridge Puzzle (complete)
+
+Add BUILD as a second limited-use ability and prove that the assignment foundation supports more than DIG. A walking creature builds a flat bridge in its current facing direction, one segment at a time, then returns to `WALKING`. Construction changes the shared terrain mask persistently and pauses with the simulation.
+
+Status: completed on 2026-08-27. The `Bridge the Gap` test level provides 2 BUILD uses and requires all 5 creatures to cross a gap. Automated coverage verifies paused assignment and inventory/HUD updates, frozen construction while paused, facing-dependent terrain placement, one-BUILD completion with all creatures rescued, outcome locking, and full terrain/inventory restart restoration. Manual visual and gameplay testing has been accepted.
+
 ## 8. Decisions already made
 
 - Godot 4.6, GDScript, and 2D
 - `CharacterBody2D` for normal creatures; not `RigidBody2D`
-- Creature states through Milestone 2: `WALKING`, `FALLING`, `DIGGING`, `EXITING`, and `DEAD`
+- Creature states through Milestone 6: `WALKING`, `FALLING`, `DIGGING`, `BUILDING`, `EXITING`, and `DEAD`
 - Static Godot collision shapes/polygons for Milestone 0 terrain
 - No normal creature-to-creature physics collision
 - No automatic ledge avoidance
@@ -176,6 +182,7 @@ Status: completed on 2026-08-27. The new `First Dig` level launches as the proje
 - Ability selection and targeting use an always-processing scene-local controller. Valid assignments begin immediately while paused; the assigned action advances only after simulation resumes.
 - Ability supplies live in the per-level `LevelDefinition`; inventory is decremented only after the creature accepts a valid assignment.
 - DIG targeting is valid only while a creature is `WALKING` with destructible material directly beneath it. One accepted assignment removes an initial circular mask region, then the creature descends and requests repeated excavation steps until a step removes no further destructible cells. Collision is rebuilt only for affected chunks; pausing freezes both descent and subsequent excavation steps.
+- BUILD targeting is valid only for a `WALKING` creature when the first bridge segment is in bounds and empty. One accepted assignment places a horizontal sequence of persistent mask-terrain segments in the creature's facing direction, then returns it to `WALKING`. Construction waits while paused and uses top-surface-only collision so bridge ends connect cleanly to authored platforms without artificial vertical walls.
 - Destructible terrain will proceed from the custom fine-resolution mask with chunk-local collision rebuilding tested in Milestone 3. Visual rendering remains separate from mask/material data. Collision is generated only for exposed boundaries, merged into collinear segments within each touched chunk.
 - The world uses normal pausable processing. Simulation control, HUD, and camera use `PROCESS_MODE_ALWAYS` so they remain interactive while `SceneTree.paused` freezes the world.
 - Simulation rates use `Engine.time_scale` values of 1, 2, and 4. Pause uses `SceneTree.paused`, not a zero time scale.
@@ -279,3 +286,4 @@ MovementTest (Node2D)
 - 2026-08-27: Accepted the corrected continuous-DIG behavior and completed Milestone 4. Began Milestone 5's first ability-required puzzle slice.
 - 2026-08-27: Implemented the `First Dig` puzzle. One DIG opens the lower exit route for all 10 creatures, and automated coverage verifies completion plus full terrain/inventory restart restoration.
 - 2026-08-27: Accepted the `First Dig` manual gameplay test and completed Milestone 5.
+- 2026-08-27: Implemented and accepted Milestone 6's BUILD slice and `Bridge the Gap` level. One facing-dependent BUILD creates a persistent walkable bridge for all 5 creatures; automated and manual pause, inventory, completion, and restart verification passes.

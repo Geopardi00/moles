@@ -6,14 +6,20 @@ const ChunkedMaskTerrainScript = preload("res://scripts/terrain/chunked_mask_ter
 const DIG_PROBE_OFFSET := Vector2(0.0, 24.0)
 const DIG_CENTER_OFFSET := Vector2(0.0, 30.0)
 const DIG_RADIUS := 34.0
+const BUILD_FEET_OFFSET := Vector2(0.0, 20.0)
+const BUILD_START_OFFSET := 12.0
+const BUILD_STEP_ADVANCE := 28.0
+const BUILD_STEP_SIZE := Vector2(32.0, 16.0)
 
 @export var level_definition: LevelDefinition
 @export var diggable_terrain_path: NodePath = ^"World/Terrain/DiggableStartTerrain"
+@export var buildable_terrain_path: NodePath
 
 @onready var spawner: CreatureSpawner = $World/CreatureSpawner
 @onready var exit_zone: ExitZone = $World/ExitZone
 @onready var kill_zone: KillZone = $World/KillZone
 @onready var diggable_terrain: ChunkedMaskTerrainScript = get_node(diggable_terrain_path) as ChunkedMaskTerrainScript
+@onready var buildable_terrain: ChunkedMaskTerrainScript = get_node_or_null(buildable_terrain_path) as ChunkedMaskTerrainScript
 @onready var level_controller: LevelController = $LevelController
 @onready var simulation_controller: SimulationController = $SimulationController
 @onready var ability_controller: AbilityAssignmentControllerScript = $AbilityAssignmentController
@@ -40,6 +46,7 @@ func _ready() -> void:
 
 	level_controller.begin_level(level_definition)
 	ability_controller.set_dig_target_validator(_can_creature_dig)
+	ability_controller.set_build_target_validator(_can_creature_build)
 	ability_controller.begin_level(level_definition)
 	hud.bind_level(level_controller)
 	hud.bind_abilities(ability_controller)
@@ -47,6 +54,7 @@ func _ready() -> void:
 
 func _on_creature_spawned(creature: Creature, spawned_count: int) -> void:
 	creature.dig_step_requested.connect(_on_creature_dig_step)
+	creature.build_step_requested.connect(_on_creature_build_step)
 	level_controller.register_spawn(spawned_count)
 
 
@@ -77,6 +85,11 @@ func _on_creature_dig_step(creature: Creature) -> void:
 		creature.finish_dig()
 
 
+func _on_creature_build_step(creature: Creature, step_index: int) -> void:
+	if buildable_terrain == null or _build_for_creature(creature, step_index) <= 0:
+		creature.finish_build()
+
+
 func _excavate_for_creature(creature: Creature) -> int:
 	return diggable_terrain.excavate_circle(
 		diggable_terrain.to_local(creature.global_position + DIG_CENTER_OFFSET),
@@ -87,6 +100,30 @@ func _excavate_for_creature(creature: Creature) -> int:
 func _can_creature_dig(creature: Creature) -> bool:
 	var probe_position := diggable_terrain.to_local(creature.global_position + DIG_PROBE_OFFSET)
 	return diggable_terrain.get_material_at(probe_position) != 0
+
+
+func _can_creature_build(creature: Creature) -> bool:
+	if buildable_terrain == null:
+		return false
+	var first_step := _get_build_rect(creature, 0)
+	var terrain_rect := Rect2(Vector2.ZERO, buildable_terrain.get_terrain_size())
+	return terrain_rect.encloses(first_step) and buildable_terrain.get_material_at(first_step.get_center()) == 0
+
+
+func _build_for_creature(creature: Creature, step_index: int) -> int:
+	return buildable_terrain.fill_rectangle(_get_build_rect(creature, step_index))
+
+
+func _get_build_rect(creature: Creature, step_index: int) -> Rect2:
+	var feet_world := creature.global_position + BUILD_FEET_OFFSET
+	var distance := BUILD_START_OFFSET + float(step_index) * BUILD_STEP_ADVANCE
+	var start_x := (
+		feet_world.x + distance
+		if creature.direction > 0
+		else feet_world.x - distance - BUILD_STEP_SIZE.x
+	)
+	var world_position := Vector2(start_x, feet_world.y)
+	return Rect2(buildable_terrain.to_local(world_position), BUILD_STEP_SIZE)
 
 
 func _on_level_completed(_saved: int, _total: int) -> void:

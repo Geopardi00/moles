@@ -23,6 +23,7 @@ enum RescueRequirementMode {
 
 @export_category("Ability Inventory")
 @export_range(0, 99, 1, "or_greater") var dig_ability_count: int = 0
+@export_range(0, 99, 1, "or_greater") var build_ability_count: int = 0
 
 
 func get_required_rescue_count() -> int:

@@ -9,7 +9,7 @@ script = ExtResource("1_hud")
 [node name="Panel" type="PanelContainer" parent="."]
 offset_left = 16.0
 offset_top = 16.0
-offset_right = 470.0
+offset_right = 700.0
 offset_bottom = 244.0
 
 [node name="Margin" type="MarginContainer" parent="Panel"]
@@ -74,6 +74,17 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "DIG remaining: 10"
 
+[node name="BuildButton" type="Button" parent="Panel/Margin/Content/Abilities"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+text = "BUILD"
+
+[node name="BuildInventoryLabel" type="Label" parent="Panel/Margin/Content/Abilities"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "BUILD remaining: 0"
+
 [node name="Controls" type="HBoxContainer" parent="Panel/Margin/Content"]
 layout_mode = 2
 theme_override_constants/separation = 6
@@ -110,7 +121,7 @@ text = "Restart [R]"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.72, 0.76, 0.78, 1)
 theme_override_font_sizes/font_size = 12
-text = "Select DIG, then click a highlighted walking mole   •   Works while paused"
+text = "Select an ability, then click a highlighted walking mole   •   Works while paused"
 
 [node name="ResultOverlay" type="Control" parent="."]
 unique_name_in_owner = true

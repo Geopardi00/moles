@@ -20,6 +20,8 @@ signal restart_requested
 @onready var restart_button: Button = %RestartButton
 @onready var dig_button: Button = %DigButton
 @onready var dig_inventory_label: Label = %DigInventoryLabel
+@onready var build_button: Button = %BuildButton
+@onready var build_inventory_label: Label = %BuildInventoryLabel
 @onready var result_overlay: Control = %ResultOverlay
 @onready var result_title: Label = %ResultTitle
 @onready var result_details: Label = %ResultDetails
@@ -93,6 +95,7 @@ func bind_abilities(controller: AbilityAssignmentControllerScript) -> void:
 	_ability_controller.selected_ability_changed.connect(_on_selected_ability_changed)
 	_ability_controller.inventory_changed.connect(_on_ability_inventory_changed)
 	dig_button.pressed.connect(_ability_controller.toggle_dig_selection)
+	build_button.pressed.connect(_ability_controller.toggle_build_selection)
 	_refresh_ability_display()
 
 
@@ -146,19 +149,27 @@ func _on_selected_ability_changed(_ability: int) -> void:
 	_refresh_ability_display()
 
 
-func _on_ability_inventory_changed(_dig_remaining: int) -> void:
+func _on_ability_inventory_changed(_dig_remaining: int, _build_remaining: int) -> void:
 	_refresh_ability_display()
 
 
 func _refresh_ability_display() -> void:
 	var dig_remaining: int = int(_ability_controller.dig_remaining) if _ability_controller != null else 0
+	var build_remaining: int = int(_ability_controller.build_remaining) if _ability_controller != null else 0
 	var dig_selected: bool = (
 		_ability_controller != null
 		and _ability_controller.is_dig_selected()
 	)
+	var build_selected: bool = (
+		_ability_controller != null
+		and _ability_controller.is_build_selected()
+	)
 	dig_inventory_label.text = "DIG remaining: %d" % dig_remaining
 	dig_button.button_pressed = dig_selected
 	dig_button.disabled = _level_finished or dig_remaining <= 0
+	build_inventory_label.text = "BUILD remaining: %d" % build_remaining
+	build_button.button_pressed = build_selected
+	build_button.disabled = _level_finished or build_remaining <= 0
 
 
 func _refresh_simulation_display() -> void:

@@ -1,0 +1,132 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://scripts/levels/gameplay_level.gd" id="1_level"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/creature_spawner.tscn" id="2_spawner"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/exit_zone.tscn" id="3_exit"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/kill_zone.tscn" id="4_kill"]
+[ext_resource type="Script" path="res://scripts/core/simulation_controller.gd" id="5_sim"]
+[ext_resource type="Script" path="res://scripts/camera/free_camera_2d.gd" id="6_camera"]
+[ext_resource type="PackedScene" path="res://scenes/ui/simulation_hud.tscn" id="7_hud"]
+[ext_resource type="Resource" path="res://resources/levels/build_puzzle_level.tres" id="8_definition"]
+[ext_resource type="Script" path="res://scripts/levels/level_controller.gd" id="9_level_controller"]
+[ext_resource type="Script" path="res://scripts/gameplay/ability_assignment_controller.gd" id="10_ability_controller"]
+[ext_resource type="Script" path="res://scripts/terrain/chunked_mask_terrain.gd" id="11_terrain"]
+
+[sub_resource type="SegmentShape2D" id="Segment_start"]
+a = Vector2(-330, -32)
+b = Vector2(330, -32)
+
+[sub_resource type="SegmentShape2D" id="Segment_goal"]
+a = Vector2(-440, -32)
+b = Vector2(440, -32)
+
+[node name="BuildPuzzle" type="Node2D"]
+script = ExtResource("1_level")
+level_definition = ExtResource("8_definition")
+buildable_terrain_path = NodePath("World/Terrain/DiggableStartTerrain")
+
+[node name="World" type="Node2D" parent="."]
+
+[node name="Background" type="Polygon2D" parent="World"]
+z_index = -20
+color = Color(0.06, 0.085, 0.11, 1)
+polygon = PackedVector2Array(0, 0, 1920, 0, 1920, 1080, 0, 1080)
+
+[node name="Backdrop" type="Polygon2D" parent="World"]
+z_index = -15
+color = Color(0.09, 0.14, 0.18, 1)
+polygon = PackedVector2Array(0, 760, 0, 520, 300, 390, 620, 560, 960, 350, 1320, 540, 1640, 370, 1920, 500, 1920, 760)
+
+[node name="Terrain" type="Node2D" parent="World"]
+
+[node name="DiggableStartTerrain" type="Node2D" parent="World/Terrain"]
+script = ExtResource("11_terrain")
+grid_size = Vector2i(240, 100)
+terrain_color = Color(0.56, 0.4, 0.2, 1)
+initial_shape = 2
+top_surface_collision_only = true
+
+[node name="StartPlatform" type="StaticBody2D" parent="World/Terrain"]
+position = Vector2(430, 432)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Visual" type="Polygon2D" parent="World/Terrain/StartPlatform"]
+color = Color(0.34, 0.26, 0.18, 1)
+polygon = PackedVector2Array(-330, -32, 330, -32, 330, 32, -330, 32)
+
+[node name="TopEdge" type="Polygon2D" parent="World/Terrain/StartPlatform"]
+color = Color(0.43, 0.67, 0.32, 1)
+polygon = PackedVector2Array(-330, -32, 330, -32, 330, -18, -330, -18)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Terrain/StartPlatform"]
+shape = SubResource("Segment_start")
+
+[node name="GoalPlatform" type="StaticBody2D" parent="World/Terrain"]
+position = Vector2(1360, 432)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Visual" type="Polygon2D" parent="World/Terrain/GoalPlatform"]
+color = Color(0.31, 0.3, 0.25, 1)
+polygon = PackedVector2Array(-440, -32, 440, -32, 440, 32, -440, 32)
+
+[node name="TopEdge" type="Polygon2D" parent="World/Terrain/GoalPlatform"]
+color = Color(0.48, 0.66, 0.36, 1)
+polygon = PackedVector2Array(-440, -32, 440, -32, 440, -18, -440, -18)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Terrain/GoalPlatform"]
+shape = SubResource("Segment_goal")
+
+[node name="BuildMarker" type="Polygon2D" parent="World"]
+z_index = -1
+color = Color(0.95, 0.72, 0.24, 0.18)
+polygon = PackedVector2Array(570, 280, 700, 280, 700, 400, 570, 400)
+
+[node name="BuildMarkerLabel" type="Label" parent="World"]
+position = Vector2(565, 245)
+theme_override_colors/font_color = Color(0.95, 0.82, 0.28, 1)
+theme_override_font_sizes/font_size = 18
+text = "BUILD ZONE"
+
+[node name="Instructions" type="Label" parent="World"]
+position = Vector2(420, 120)
+theme_override_colors/font_color = Color(0.9, 0.92, 0.92, 1)
+theme_override_colors/font_outline_color = Color(0.04, 0.06, 0.07, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 30
+text = "Pause near the edge and BUILD a bridge in the mole's facing direction"
+
+[node name="Creatures" type="Node2D" parent="World"]
+
+[node name="CreatureSpawner" parent="World" instance=ExtResource("2_spawner")]
+position = Vector2(300, 350)
+creature_container_path = NodePath("../Creatures")
+
+[node name="ExitZone" parent="World" instance=ExtResource("3_exit")]
+position = Vector2(1650, 325)
+
+[node name="KillZone" parent="World" instance=ExtResource("4_kill")]
+position = Vector2(960, 1100)
+
+[node name="SimulationController" type="Node" parent="."]
+process_mode = 3
+script = ExtResource("5_sim")
+
+[node name="LevelController" type="Node" parent="."]
+script = ExtResource("9_level_controller")
+
+[node name="AbilityAssignmentController" type="Node" parent="."]
+process_mode = 3
+script = ExtResource("10_ability_controller")
+
+[node name="CameraRig" type="Node2D" parent="."]
+process_mode = 3
+position = Vector2(960, 540)
+script = ExtResource("6_camera")
+movement_bounds = Rect2(0, 0, 1920, 1080)
+
+[node name="Camera2D" type="Camera2D" parent="CameraRig"]
+
+[node name="HUD" parent="." instance=ExtResource("7_hud")]
+simulation_controller_path = NodePath("../SimulationController")
