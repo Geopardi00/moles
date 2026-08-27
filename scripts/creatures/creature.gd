@@ -6,12 +6,14 @@ extends CharacterBody2D
 signal state_changed(previous: State, current: State)
 signal dig_step_requested(creature: Creature)
 signal build_step_requested(creature: Creature, step_index: int)
+signal blocker_redirected(blocker: Creature, creature: Creature)
 
 enum State {
 	WALKING,
 	FALLING,
 	DIGGING,
 	BUILDING,
+	BLOCKING,
 	EXITING,
 	DEAD,
 }
@@ -23,6 +25,7 @@ enum State {
 @export_range(10.0, 300.0, 1.0, "or_greater") var dig_descent_speed: float = 72.0
 @export_range(0.05, 1.0, 0.01, "or_greater") var build_step_interval: float = 0.14
 @export_range(1, 32, 1, "or_greater") var build_step_count: int = 12
+@export_range(0.5, 30.0, 0.1, "or_greater") var block_duration: float = 5.5
 @export var show_state_label: bool = false
 
 var direction: int = 1
@@ -30,15 +33,19 @@ var current_state: State = State.FALLING
 var _dig_step_time_remaining: float = 0.0
 var _build_step_time_remaining: float = 0.0
 var _build_step_index: int = 0
+var _block_time_remaining: float = 0.0
 
 @onready var visual_root: Node2D = $VisualRoot
 @onready var selection_highlight: Polygon2D = $SelectionHighlight
 @onready var dig_effect: Polygon2D = $DigEffect
 @onready var build_effect: Polygon2D = $VisualRoot/BuildEffect
+@onready var block_effect: Polygon2D = $VisualRoot/BlockEffect
+@onready var blocker_area: Area2D = $BlockerArea
 @onready var state_label: Label = $StateLabel
 
 
 func _ready() -> void:
+	blocker_area.body_entered.connect(_on_blocker_area_body_entered)
 	_apply_facing()
 	_update_state_label()
 
@@ -69,6 +76,12 @@ func _physics_process(delta: float) -> void:
 				_build_step_index += 1
 				if _build_step_index >= build_step_count:
 					finish_build()
+		return
+	if current_state == State.BLOCKING:
+		velocity = Vector2.ZERO
+		_block_time_remaining -= delta
+		if _block_time_remaining <= 0.0:
+			finish_block()
 		return
 
 	velocity.x = walk_speed * float(direction)
@@ -119,6 +132,40 @@ func finish_build() -> void:
 	_transition_to(State.WALKING)
 
 
+func begin_block() -> bool:
+	if current_state != State.WALKING:
+		return false
+	_block_time_remaining = block_duration
+	block_effect.visible = true
+	blocker_area.monitoring = true
+	velocity = Vector2.ZERO
+	_transition_to(State.BLOCKING)
+	return true
+
+
+func finish_block() -> void:
+	if current_state != State.BLOCKING:
+		return
+	blocker_area.set_deferred("monitoring", false)
+	block_effect.visible = false
+	velocity = Vector2.ZERO
+	_transition_to(State.WALKING)
+
+
+func redirect_from_blocker(blocker_x: float) -> bool:
+	if current_state != State.WALKING:
+		return false
+	var horizontal_offset := global_position.x - blocker_x
+	var is_approaching := (
+		(horizontal_offset < 0.0 and direction > 0)
+		or (horizontal_offset > 0.0 and direction < 0)
+	)
+	if not is_approaching:
+		return false
+	_reverse_direction()
+	return true
+
+
 func set_target_highlighted(is_highlighted: bool) -> void:
 	selection_highlight.visible = is_highlighted
 
@@ -146,10 +193,24 @@ func _turn_around_when_blocked() -> void:
 		var collision := get_slide_collision(collision_index)
 		var normal := collision.get_normal()
 		if absf(normal.x) > 0.7 and normal.x * float(direction) < -0.5:
-			direction *= -1
-			velocity.x = walk_speed * float(direction)
-			_apply_facing()
+			_reverse_direction()
 			return
+
+
+func _reverse_direction() -> void:
+	direction *= -1
+	velocity.x = walk_speed * float(direction)
+	_apply_facing()
+
+
+func _on_blocker_area_body_entered(body: Node2D) -> void:
+	if current_state != State.BLOCKING:
+		return
+	var other := body as Creature
+	if other == null or other == self:
+		return
+	if other.redirect_from_blocker(global_position.x):
+		blocker_redirected.emit(self, other)
 
 
 func _transition_to(next_state: State) -> void:
@@ -166,6 +227,8 @@ func _finish_lifecycle() -> void:
 	set_target_highlighted(false)
 	dig_effect.visible = false
 	build_effect.visible = false
+	block_effect.visible = false
+	blocker_area.set_deferred("monitoring", false)
 	velocity = Vector2.ZERO
 	set_physics_process(false)
 	collision_layer = 0

@@ -26,7 +26,7 @@ The player controls the solution, not direct creature movement. The core challen
 - Early levels generally contain 10–30 creatures; later levels may contain more.
 - Levels are scrolling spaces and are not constrained to one screen.
 - Pause and 1×/2×/4× simulation controls are core. Player-facing planning and targeting must remain usable while paused.
-- Normal creatures do not physically collide with one another and may overlap. Purpose-built effects such as a future Blocker may influence other creatures through queries or trigger areas.
+- Normal creatures do not physically collide with one another and may overlap. Purpose-built effects such as BLOCK influence other creatures through explicit trigger areas.
 - Creatures walk off ledges. The prototype has non-fatal falls: fall, land, resume walking.
 - A creature that walks into a blocking wall reverses horizontal direction.
 - Terrain will eventually be mostly destructible, but final terrain destruction is not part of the foundation milestone.
@@ -156,15 +156,21 @@ Status: completed on 2026-08-27. The `Down and Across` level has 5 creatures, re
 
 ### Milestone 8 — Playable Level Flow (complete)
 
-Replace the editor-only level-launch workflow with a player-facing entry screen. Present the three authored puzzles from a data-driven catalog, launch any selected level, and allow return to level selection while running, paused, or viewing a completion/failure result.
+Replace the editor-only level-launch workflow with a player-facing entry screen. Present authored puzzles from a data-driven catalog, launch any selected level, and allow return to level selection while running, paused, or viewing a completion/failure result.
 
-Status: completed on 2026-08-27. The project now starts on a `Moles` level-selection screen backed by `LevelCatalog` and `LevelMenuEntry` resources. All gameplay HUDs expose `Levels [Esc]`, result overlays expose `Choose Level [Esc]`, and navigation normalizes pause-lock and simulation speed before changing scenes. Automated coverage verifies ordered catalog rendering, loadable scene references, configured level launch, return from a locked/paused level, rebuilt menu state, and no leaked pause or speed state. Manual visual and navigation testing has been accepted.
+Status: completed on 2026-08-27. The project now starts on a `Moles` level-selection screen backed by `LevelCatalog` and `LevelMenuEntry` resources. All gameplay HUDs expose `Levels [Esc]`, result overlays expose `Choose Level [Esc]`, and navigation normalizes pause-lock and simulation speed before changing scenes. Automated coverage verifies ordered catalog rendering, loadable scene references, configured level launch, return from a locked/paused level, rebuilt menu state, and no leaked pause or speed state. Manual visual and navigation testing has been accepted. The catalog currently contains four puzzle levels.
+
+### Milestone 9 — BLOCK Ability and Crowd Redirection (complete)
+
+Add BLOCK as the first ability whose active creature influences other autonomous creatures. A walking mole becomes a temporary stationary blocker; an explicit trigger area reverses approaching walkers without introducing creature-to-creature physics collision. When the blocking duration ends, the blocker returns to `WALKING`.
+
+Status: completed on 2026-08-27. The `Hold the Line` level provides exactly 1 BLOCK for 5 creatures and requires 4 rescues. The leader blocks near a dangerous ledge, redirects all 4 followers toward the exit, then resumes walking and becomes the permitted single loss. Automated coverage verifies paused assignment, independent three-ability inventory/HUD state, frozen blocker timing while paused, exactly four trigger-based redirects, the intended 4-saved/1-lost completion, outcome locking, and full restart restoration. Manual visual and gameplay testing has been accepted.
 
 ## 8. Decisions already made
 
 - Godot 4.6, GDScript, and 2D
 - `CharacterBody2D` for normal creatures; not `RigidBody2D`
-- Creature states through Milestone 6: `WALKING`, `FALLING`, `DIGGING`, `BUILDING`, `EXITING`, and `DEAD`
+- Creature states through Milestone 9: `WALKING`, `FALLING`, `DIGGING`, `BUILDING`, `BLOCKING`, `EXITING`, and `DEAD`
 - Static Godot collision shapes/polygons for Milestone 0 terrain
 - No normal creature-to-creature physics collision
 - No automatic ledge avoidance
@@ -195,6 +201,7 @@ Status: completed on 2026-08-27. The project now starts on a `Moles` level-selec
 - Ability supplies live in the per-level `LevelDefinition`; inventory is decremented only after the creature accepts a valid assignment.
 - DIG targeting is valid only while a creature is `WALKING` with destructible material directly beneath it. One accepted assignment removes an initial circular mask region, then the creature descends and requests repeated excavation steps until a step removes no further destructible cells. Collision is rebuilt only for affected chunks; pausing freezes both descent and subsequent excavation steps.
 - BUILD targeting is valid only for a `WALKING` creature when the first bridge segment is in bounds and empty. One accepted assignment places a horizontal sequence of persistent mask-terrain segments in the creature's facing direction, then returns it to `WALKING`. Construction waits while paused and uses top-surface-only collision so bridge ends connect cleanly to authored platforms without artificial vertical walls.
+- BLOCK targeting accepts a `WALKING` creature. The blocker becomes stationary for a fixed duration and enables a non-physical `Area2D` that reverses only walkers approaching from either side. Blocking duration and redirection freeze with the simulation; the assigned creature returns to `WALKING` when time expires.
 - Destructible terrain will proceed from the custom fine-resolution mask with chunk-local collision rebuilding tested in Milestone 3. Visual rendering remains separate from mask/material data. Collision is generated only for exposed boundaries, merged into collinear segments within each touched chunk.
 - The world uses normal pausable processing. Simulation control, HUD, and camera use `PROCESS_MODE_ALWAYS` so they remain interactive while `SceneTree.paused` freezes the world.
 - Simulation rates use `Engine.time_scale` values of 1, 2, and 4. Pause uses `SceneTree.paused`, not a zero time scale.
@@ -301,4 +308,5 @@ MovementTest (Node2D)
 - 2026-08-27: Accepted the `First Dig` manual gameplay test and completed Milestone 5.
 - 2026-08-27: Implemented and accepted Milestone 6's BUILD slice and `Bridge the Gap` level. One facing-dependent BUILD creates a persistent walkable bridge for all 5 creatures; automated and manual pause, inventory, completion, and restart verification passes.
 - 2026-08-27: Implemented and accepted Milestone 7's `Down and Across` puzzle, requiring exactly one DIG followed by one BUILD. Automated and manual verification proves both terrain mutations compose, all 5 creatures are rescued, and restart restores both systems.
-- 2026-08-27: Implemented and accepted Milestone 8's data-driven level-selection entry screen and in-level return navigation. Automated and manual verification confirms all three catalog entries, scene launch, and clean return from running, paused, and outcome states.
+- 2026-08-27: Implemented and accepted Milestone 8's data-driven level-selection entry screen and in-level return navigation. Automated and manual verification confirms catalog rendering, scene launch, and clean return from running, paused, and outcome states.
+- 2026-08-27: Implemented and accepted Milestone 9's BLOCK ability and `Hold the Line` puzzle. A temporary blocker redirects four followers through an explicit trigger area without physical creature collision; automated and manual assignment, pause, 4/5 outcome, and restart verification passes.

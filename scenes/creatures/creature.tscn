@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/creatures/creature.gd" id="1_creature"]
 
@@ -8,6 +8,9 @@ height = 40.0
 
 [sub_resource type="RectangleShape2D" id="Rectangle_selection"]
 size = Vector2(53.333, 66.667)
+
+[sub_resource type="RectangleShape2D" id="Rectangle_blocker"]
+size = Vector2(96, 72)
 
 [node name="Creature" type="CharacterBody2D"]
 collision_layer = 2
@@ -37,6 +40,12 @@ position = Vector2(21, 4)
 color = Color(0.95, 0.72, 0.24, 0.95)
 polygon = PackedVector2Array(-5, -14, 8, -14, 8, 10, 18, 10, 18, 17, -5, 17)
 
+[node name="BlockEffect" type="Polygon2D" parent="VisualRoot"]
+visible = false
+z_index = -1
+color = Color(0.92, 0.32, 0.22, 0.92)
+polygon = PackedVector2Array(-38, -7, -18, -7, -18, -25, -10, -25, -10, 25, -18, 25, -18, 7, -38, 7, 38, 7, 18, 7, 18, 25, 10, 25, 10, -25, 18, -25, 18, -7, 38, -7)
+
 [node name="Body" type="Polygon2D" parent="VisualRoot"]
 color = Color(0.36, 0.72, 0.48, 1)
 polygon = PackedVector2Array(-11.667, -16.667, 8.333, -16.667, 13.333, -8.333, 13.333, 11.667, 6.667, 18.333, -8.333, 18.333, -13.333, 10, -13.333, -10)
@@ -59,6 +68,15 @@ monitoring = false
 
 [node name="SelectionCollision" type="CollisionShape2D" parent="SelectionArea"]
 shape = SubResource("Rectangle_selection")
+
+[node name="BlockerArea" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BlockerArea"]
+shape = SubResource("Rectangle_blocker")
 
 [node name="StateLabel" type="Label" parent="."]
 visible = false
