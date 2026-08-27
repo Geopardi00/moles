@@ -1,0 +1,118 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/terrain/terrain_prototype.gd" id="1_lab"]
+[ext_resource type="Script" path="res://scripts/terrain/fine_cell_terrain.gd" id="2_fine"]
+[ext_resource type="Script" path="res://scripts/terrain/chunked_mask_terrain.gd" id="3_mask"]
+
+[node name="TerrainPrototype" type="Node2D"]
+process_mode = 3
+script = ExtResource("1_lab")
+
+[node name="Background" type="Polygon2D" parent="."]
+z_index = -20
+color = Color(0.065, 0.09, 0.11, 1)
+polygon = PackedVector2Array(0, 0, 1920, 0, 1920, 1080, 0, 1080)
+
+[node name="FineCellTerrain" type="TileMapLayer" parent="."]
+position = Vector2(80, 330)
+script = ExtResource("2_fine")
+
+[node name="ChunkedMaskTerrain" type="Node2D" parent="."]
+position = Vector2(1120, 330)
+script = ExtResource("3_mask")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+process_mode = 3
+
+[node name="Title" type="Label" parent="HUD"]
+offset_left = 32.0
+offset_top = 20.0
+offset_right = 1888.0
+offset_bottom = 56.0
+theme_override_font_sizes/font_size = 28
+text = "MILESTONE 3 — DESTRUCTIBLE TERRAIN LAB"
+horizontal_alignment = 1
+
+[node name="Instructions" type="Label" parent="HUD"]
+offset_left = 32.0
+offset_top = 64.0
+offset_right = 1888.0
+offset_bottom = 92.0
+theme_override_colors/font_color = Color(0.76, 0.8, 0.82, 1)
+text = "Left-click/drag: excavate   •   Right-click: reset   •   Same world footprint and dig radius"
+horizontal_alignment = 1
+
+[node name="FinePanel" type="PanelContainer" parent="HUD"]
+offset_left = 48.0
+offset_top = 112.0
+offset_right = 872.0
+offset_bottom = 244.0
+
+[node name="Margin" type="MarginContainer" parent="HUD/FinePanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 12
+
+[node name="Content" type="VBoxContainer" parent="HUD/FinePanel/Margin"]
+layout_mode = 2
+
+[node name="Heading" type="Label" parent="HUD/FinePanel/Margin/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.82, 0.28, 1)
+theme_override_font_sizes/font_size = 20
+text = "A — FINE-CELL TILEMAPLAYER"
+
+[node name="FineMetrics" type="Label" parent="HUD/FinePanel/Margin/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Metrics"
+
+[node name="MaskPanel" type="PanelContainer" parent="HUD"]
+offset_left = 1048.0
+offset_top = 112.0
+offset_right = 1872.0
+offset_bottom = 244.0
+
+[node name="Margin" type="MarginContainer" parent="HUD/MaskPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 12
+
+[node name="Content" type="VBoxContainer" parent="HUD/MaskPanel/Margin"]
+layout_mode = 2
+
+[node name="Heading" type="Label" parent="HUD/MaskPanel/Margin/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.61, 0.88, 0.74, 1)
+theme_override_font_sizes/font_size = 20
+text = "B — CUSTOM MASK + CHUNK COLLISION"
+
+[node name="MaskMetrics" type="Label" parent="HUD/MaskPanel/Margin/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Metrics"
+
+[node name="InteractionStatus" type="Label" parent="HUD"]
+unique_name_in_owner = true
+offset_left = 32.0
+offset_top = 920.0
+offset_right = 1888.0
+offset_bottom = 958.0
+theme_override_colors/font_color = Color(0.95, 0.82, 0.28, 1)
+theme_override_font_sizes/font_size = 18
+text = "Ready"
+horizontal_alignment = 1
+
+[node name="Evaluation" type="Label" parent="HUD"]
+offset_left = 160.0
+offset_top = 970.0
+offset_right = 1760.0
+offset_bottom = 1040.0
+theme_override_colors/font_color = Color(0.72, 0.76, 0.78, 1)
+text = "Compare edge smoothness, dig feel, update cost, collision complexity, material lookup, and suitability for future liquids."
+horizontal_alignment = 1
+autowrap_mode = 2

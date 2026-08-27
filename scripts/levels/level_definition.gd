@@ -21,6 +21,9 @@ enum RescueRequirementMode {
 @export_range(0, 200, 1, "or_greater") var required_rescue_count: int = 1
 @export_range(0.0, 100.0, 0.1) var required_rescue_percentage: float = 70.0
 
+@export_category("Ability Inventory")
+@export_range(0, 99, 1, "or_greater") var dig_ability_count: int = 0
+
 
 func get_required_rescue_count() -> int:
 	var requirement: int

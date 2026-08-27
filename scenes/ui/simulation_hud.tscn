@@ -59,6 +59,21 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.82, 0.28, 1)
 text = "RUNNING  •  1×"
 
+[node name="Abilities" type="HBoxContainer" parent="Panel/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="DigButton" type="Button" parent="Panel/Margin/Content/Abilities"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+text = "DIG"
+
+[node name="DigInventoryLabel" type="Label" parent="Panel/Margin/Content/Abilities"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "DIG remaining: 10"
+
 [node name="Controls" type="HBoxContainer" parent="Panel/Margin/Content"]
 layout_mode = 2
 theme_override_constants/separation = 6
@@ -95,7 +110,7 @@ text = "Restart [R]"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.72, 0.76, 0.78, 1)
 theme_override_font_sizes/font_size = 12
-text = "WASD: pan camera   •   1 / 2 / 4: speed"
+text = "Select DIG, then click a highlighted walking mole   •   Works while paused"
 
 [node name="ResultOverlay" type="Control" parent="."]
 unique_name_in_owner = true

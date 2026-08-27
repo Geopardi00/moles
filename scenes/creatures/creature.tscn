@@ -16,6 +16,19 @@ floor_snap_length = 6.667
 floor_stop_on_slope = true
 script = ExtResource("1_creature")
 
+[node name="SelectionHighlight" type="Polygon2D" parent="."]
+visible = false
+z_index = -1
+color = Color(0.95, 0.82, 0.28, 0.55)
+polygon = PackedVector2Array(0, -30, 24, -18, 29, 4, 18, 27, 0, 34, -18, 27, -29, 4, -24, -18)
+
+[node name="DigEffect" type="Polygon2D" parent="."]
+visible = false
+z_index = -2
+position = Vector2(0, 21)
+color = Color(0.3, 0.2, 0.12, 0.9)
+polygon = PackedVector2Array(-22, 7, -14, -4, 0, -9, 15, -4, 23, 7, 12, 12, -12, 12)
+
 [node name="VisualRoot" type="Node2D" parent="."]
 
 [node name="Body" type="Polygon2D" parent="VisualRoot"]

@@ -99,11 +99,11 @@ Status: completed on 2026-08-14. The automated pause and 30-creature route test 
 
 Excluded: abilities, destructible terrain, liquids, final art, medals, and fall damage.
 
-### Milestone 1 — Level Loop (current)
+### Milestone 1 — Level Loop (complete)
 
 Add total/saved/required counts, data-driven level configuration, completion, failure, and restart. This begins only after Milestone 0 is reliable.
 
-Status: implemented on 2026-08-14. Automated coverage passes for data-driven requirements, completion, early failure, outcome pause-locking, and a full scene restart. Manual visual sign-off remains.
+Status: completed on 2026-08-27. Automated coverage passes for data-driven requirements, completion, early failure, outcome pause-locking, and a full scene restart. Manual visual testing has accepted both the successful-completion and early-failure paths, including their HUD state, pause locking, and restart behavior.
 
 Confirmed outcome rules:
 
@@ -111,19 +111,42 @@ Confirmed outcome rules:
 - A level fails early when losses make the rescue requirement mathematically impossible.
 - Completed and failed simulations pause and remain locked until restart.
 
-### Milestone 2 — Ability Assignment Foundation
+### Milestone 2 — Ability Assignment Foundation (complete)
 
 Prove `select DIG → hover/highlight creature → assign → decrement resource → DIGGING → WALKING`. Terrain modification may initially be deliberately crude because the assignment loop is the experiment.
 
-### Milestone 3 — Destructible Terrain Prototype
+Status: completed on 2026-08-27. DIG inventory is level-configured; ability selection, hover highlighting, click assignment while running or paused, resource consumption, invalid-target rejection, and the temporary `DIGGING → WALKING` action are covered by an automated smoke test and accepted manual visual testing. Terrain collision was intentionally unchanged at this milestone; Milestone 4 now integrates the selected mask/chunk terrain.
+
+### Milestone 3 — Destructible Terrain Prototype (complete)
 
 In a separate experimental scene, compare fine-cell terrain and a custom mask/grid with chunk-based collision rebuilding. Evaluate organic presentation, excavation feel, CPU cost, material identification, and future liquid compatibility.
+
+Status: completed on 2026-08-27. Automated excavation, material lookup, collision removal/preservation, chunk-local rebuilding, and reset coverage passes. Manual comparison accepted Option B, the custom 8 px mask with chunk-local collision rebuilding, as the smoother excavation experience.
+
+Preliminary experiment result:
+
+- The 16 px `TileMapLayer` baseline is simpler and cheaper per dig, but its presentation and collision resolution are visibly tied to coarse cells and every occupied cell contributes a collision unit.
+- The custom 8 px mask removes roughly four times as many samples for the same world-space excavation. After switching to boundary contours, one 16-dig headless debug run took 12,336 µs versus 5,126 µs for the TileMap baseline while rebuilding only 30 touched chunks in total.
+- The custom mask provides direct per-sample material data, finer excavation edges, fewer merged collision units, and a natural shared data field for future liquid/material simulation.
+- Decision: continue with the custom mask/chunk direction. Chunk rebuilds now emit merged exposed-boundary segments rather than solid row rectangles. A bounded 30-creature test remained stable through 24 live digs with all creatures returning to `WALKING`; the slowest rebuild in that debug run was 1,552 µs. The terrain backend is ready for DIG integration into a normal level.
+
+### Milestone 4 — Destructible DIG Integration (complete)
+
+Replace the movement lab's starting platform with the selected mask/chunk terrain and connect accepted DIG assignments to real material removal and collision rebuilding. DIG must only highlight and accept creatures with destructible material beneath them; rejected static-terrain targets must not consume inventory.
+
+Status: completed on 2026-08-27. Automated coverage verifies material-aware targeting, paused assignment, one-use continuous excavation through the final platform layer, empty material lookup, collision breakthrough, resumed autonomous movement, unchanged no-DIG level completion/restart, and the 30-creature live-rebuild stress case. Manual testing accepted the corrected continuous-DIG behavior.
+
+### Milestone 5 — First DIG Puzzle (complete)
+
+Prove the complete puzzle loop in a small data-driven level: creatures remain trapped on an upper route until one limited-use DIG assignment opens persistent destructible terrain, allowing the population to reach the exit below and complete the level. Restart must restore terrain, inventory, creatures, and counters.
+
+Status: completed on 2026-08-27. The new `First Dig` level launches as the project main scene with 10 creatures, an 8-creature requirement, and 3 DIG uses. Automated coverage confirms that no creature reaches the exit before intervention, one DIG opens the persistent route, all 10 are rescued, completion locks the simulation, and restart restores terrain, inventory, counters, pause, and 1× speed. Manual visual and gameplay testing has been accepted.
 
 ## 8. Decisions already made
 
 - Godot 4.6, GDScript, and 2D
 - `CharacterBody2D` for normal creatures; not `RigidBody2D`
-- Initial creature states: `WALKING`, `FALLING`, `EXITING`, and `DEAD`
+- Creature states through Milestone 2: `WALKING`, `FALLING`, `DIGGING`, `EXITING`, and `DEAD`
 - Static Godot collision shapes/polygons for Milestone 0 terrain
 - No normal creature-to-creature physics collision
 - No automatic ledge avoidance
@@ -136,7 +159,6 @@ In a separate experimental scene, compare fine-cell terrain and a custom mask/gr
 - Final core ability roster and per-ability targeting modes
 - Safe-fall threshold and fall-protection abilities
 - Maximum supported creature population and target platforms/performance budgets
-- Whether pause permits assignment directly or queues an assignment for the first resumed simulation tick
 - Exact camera feature set beyond keyboard panning
 - Material interaction matrix for terrain and environmental systems
 
@@ -151,6 +173,10 @@ In a separate experimental scene, compare fine-cell terrain and a custom mask/gr
 - Creature bodies occupy Layer 2 and mask only Layer 1. Therefore creatures collide with terrain but never with one another.
 - Goal and hazard `Area2D` nodes mask Layer 2 and do not physically block movement.
 - Each creature owns a larger child selection `Area2D` on Layer 5 for future comfortable targeting.
+- Ability selection and targeting use an always-processing scene-local controller. Valid assignments begin immediately while paused; the assigned action advances only after simulation resumes.
+- Ability supplies live in the per-level `LevelDefinition`; inventory is decremented only after the creature accepts a valid assignment.
+- DIG targeting is valid only while a creature is `WALKING` with destructible material directly beneath it. One accepted assignment removes an initial circular mask region, then the creature descends and requests repeated excavation steps until a step removes no further destructible cells. Collision is rebuilt only for affected chunks; pausing freezes both descent and subsequent excavation steps.
+- Destructible terrain will proceed from the custom fine-resolution mask with chunk-local collision rebuilding tested in Milestone 3. Visual rendering remains separate from mask/material data. Collision is generated only for exposed boundaries, merged into collinear segments within each touched chunk.
 - The world uses normal pausable processing. Simulation control, HUD, and camera use `PROCESS_MODE_ALWAYS` so they remain interactive while `SceneTree.paused` freezes the world.
 - Simulation rates use `Engine.time_scale` values of 1, 2, and 4. Pause uses `SceneTree.paused`, not a zero time scale.
 - Camera travel is measured using real elapsed time so camera speed does not change with simulation speed.
@@ -158,13 +184,13 @@ In a separate experimental scene, compare fine-cell terrain and a custom mask/gr
 - Population, spawn settings, and rescue requirements live in a per-level `LevelDefinition` resource.
 - Rescue requirements may be authored as an exact count or a percentage; percentage requirements round upward to a whole creature.
 - A reusable `LevelController` owns progress and outcome rules. Level scenes connect world events to it, while the HUD only presents its state and requests actions.
+- A reusable `GameplayLevel` coordinator now binds population, outcomes, abilities, destructible terrain, HUD, and restart behavior for both the movement lab and authored puzzle scenes.
 - Restart reloads the current level scene and restores an unpaused 1× simulation with fresh counters.
 - The gameplay design resolution is 1920×1080, with `Camera2D.zoom` remaining at `Vector2(1, 1)` for the baseline view. World geometry, creature tuning, triggers, and camera bounds are authored directly for that coordinate system rather than using a scaled physics parent.
 
 ## 11. Undecided technical experiments
 
-- Fine-grid/TileMapLayer terrain versus custom mask/grid and chunked collision
-- Collision contour generation and chunk size for destructible terrain
+- Contour simplification and chunk-size tuning at production level scale
 - CPU versus GPU responsibilities for visual terrain updates
 - Liquid and granular simulation representation/resolution
 - Navigation/prediction overlays for puzzle planning
@@ -181,7 +207,7 @@ In a separate experimental scene, compare fine-cell terrain and a custom mask/gr
 - `scripts/core/simulation_controller.gd`: pause and 1×/2×/4× state
 - `scripts/camera/free_camera_2d.gd`: real-time keyboard camera panning
 - `scripts/ui/simulation_hud.gd`: counters, buttons, status display, and help text
-- `scenes/levels/movement_test.tscn` and `scripts/levels/movement_test.gd`: static test geometry and level-local event coordination
+- `scenes/levels/movement_test.tscn` and `scripts/levels/gameplay_level.gd`: static test geometry plus reusable level event coordination
 - `scripts/tests/milestone_0_smoke_test.gd`: headless population/rescue regression test
 
 ### `Creature.tscn` node tree
@@ -242,3 +268,14 @@ MovementTest (Node2D)
 - 2026-08-14: Implemented the Milestone 1 data-driven level loop, including count/percentage rescue requirements, completion, early failure, outcome locking, and restart.
 - 2026-08-14: Confirmed that normal completion waits for all creatures to resolve so later rescue ranks remain meaningful.
 - 2026-08-14: Standardized gameplay framing on 1920×1080 at camera zoom 1.0 and rescaled the movement lab directly into that coordinate system.
+- 2026-08-27: Accepted Milestone 1 after manual success- and failure-route testing confirmed counters, outcomes, pause locking, camera/HUD behavior while paused, and restart behavior.
+- 2026-08-27: Implemented the Milestone 2 DIG assignment slice with level-configured inventory, hover targeting, direct paused assignment, placeholder action feedback, and automated `DIGGING → WALKING` coverage.
+- 2026-08-27: Accepted Milestone 2 manual testing and began the isolated Milestone 3 terrain comparison.
+- 2026-08-27: Implemented the side-by-side Milestone 3 terrain lab. Automated tests favor the custom 8 px mask/chunk direction provisionally; manual feel review and contour/load validation remain.
+- 2026-08-27: Accepted Milestone 3 manual testing and selected Option B, the custom mask with chunk-local collision rebuilding, as the terrain direction.
+- 2026-08-27: Replaced prototype row-run collision with chunk-local exposed-boundary contours. A 30-creature, 24-dig stress test passed without fall-throughs or unstable movement in a bounded test room.
+- 2026-08-27: Implemented Milestone 4's first real destructible gameplay slice by replacing the movement lab start platform with mask terrain and connecting valid DIG assignments to material and collision removal.
+- 2026-08-27: Manual Milestone 4 testing exposed that DIG stopped after one pulse and could leave the final platform layer intact. DIG now continues descending and excavating until it breaks through or reaches non-diggable space, using only one inventory item.
+- 2026-08-27: Accepted the corrected continuous-DIG behavior and completed Milestone 4. Began Milestone 5's first ability-required puzzle slice.
+- 2026-08-27: Implemented the `First Dig` puzzle. One DIG opens the lower exit route for all 10 creatures, and automated coverage verifies completion plus full terrain/inventory restart restoration.
+- 2026-08-27: Accepted the `First Dig` manual gameplay test and completed Milestone 5.

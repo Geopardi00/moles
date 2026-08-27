@@ -1,6 +1,8 @@
 class_name SimulationHUD
 extends CanvasLayer
 
+const AbilityAssignmentControllerScript = preload("res://scripts/gameplay/ability_assignment_controller.gd")
+
 signal restart_requested
 
 @export var simulation_controller_path: NodePath
@@ -16,6 +18,8 @@ signal restart_requested
 @onready var speed_2_button: Button = %Speed2Button
 @onready var speed_4_button: Button = %Speed4Button
 @onready var restart_button: Button = %RestartButton
+@onready var dig_button: Button = %DigButton
+@onready var dig_inventory_label: Label = %DigInventoryLabel
 @onready var result_overlay: Control = %ResultOverlay
 @onready var result_title: Label = %ResultTitle
 @onready var result_details: Label = %ResultDetails
@@ -23,8 +27,10 @@ signal restart_requested
 
 var _controller: SimulationController
 var _level_controller: LevelController
+var _ability_controller: AbilityAssignmentControllerScript
 var _paused: bool = false
 var _speed: float = 1.0
+var _level_finished: bool = false
 
 
 func _ready() -> void:
@@ -47,6 +53,7 @@ func _ready() -> void:
 	_speed = _controller.speed_multiplier
 	result_overlay.visible = false
 	_refresh_simulation_display()
+	_refresh_ability_display()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -81,6 +88,14 @@ func bind_level(controller: LevelController) -> void:
 	_on_level_status_changed(_level_controller.status)
 
 
+func bind_abilities(controller: AbilityAssignmentControllerScript) -> void:
+	_ability_controller = controller
+	_ability_controller.selected_ability_changed.connect(_on_selected_ability_changed)
+	_ability_controller.inventory_changed.connect(_on_ability_inventory_changed)
+	dig_button.pressed.connect(_ability_controller.toggle_dig_selection)
+	_refresh_ability_display()
+
+
 func _on_progress_changed(
 	spawned: int,
 	total: int,
@@ -95,11 +110,13 @@ func _on_progress_changed(
 
 func _on_level_status_changed(status: LevelController.Status) -> void:
 	var is_finished := status == LevelController.Status.COMPLETED or status == LevelController.Status.FAILED
+	_level_finished = is_finished
 	pause_button.disabled = is_finished
 	speed_1_button.disabled = is_finished
 	speed_2_button.disabled = is_finished
 	speed_4_button.disabled = is_finished
 	result_overlay.visible = is_finished
+	_refresh_ability_display()
 
 	if status == LevelController.Status.COMPLETED:
 		result_title.text = "LEVEL COMPLETE"
@@ -123,6 +140,25 @@ func _on_pause_changed(is_paused: bool) -> void:
 func _on_speed_changed(multiplier: float) -> void:
 	_speed = multiplier
 	_refresh_simulation_display()
+
+
+func _on_selected_ability_changed(_ability: int) -> void:
+	_refresh_ability_display()
+
+
+func _on_ability_inventory_changed(_dig_remaining: int) -> void:
+	_refresh_ability_display()
+
+
+func _refresh_ability_display() -> void:
+	var dig_remaining: int = int(_ability_controller.dig_remaining) if _ability_controller != null else 0
+	var dig_selected: bool = (
+		_ability_controller != null
+		and _ability_controller.is_dig_selected()
+	)
+	dig_inventory_label.text = "DIG remaining: %d" % dig_remaining
+	dig_button.button_pressed = dig_selected
+	dig_button.disabled = _level_finished or dig_remaining <= 0
 
 
 func _refresh_simulation_display() -> void:

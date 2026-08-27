@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Moles"
-run/main_scene="res://scenes/levels/movement_test.tscn"
+run/main_scene="res://scenes/levels/dig_puzzle.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 

@@ -4,10 +4,10 @@
 
 [resource]
 script = ExtResource("1_definition")
-display_name = "Movement Lab"
-total_creatures = 30
-spawn_interval = 0.2
+display_name = "First Dig"
+total_creatures = 10
+spawn_interval = 0.35
 initial_direction = 1
 rescue_requirement_mode = 1
 required_rescue_percentage = 80.0
-dig_ability_count = 10
+dig_ability_count = 3
