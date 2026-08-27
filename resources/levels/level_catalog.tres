@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="LevelCatalog" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/level_catalog.gd" id="1_catalog"]
+[ext_resource type="Script" path="res://scripts/ui/level_menu_entry.gd" id="2_entry"]
+
+[sub_resource type="Resource" id="Level_first_dig"]
+script = ExtResource("2_entry")
+number = 1
+title = "First Dig"
+description = "Open the sealed upper route and rescue the colony below."
+ability_summary = "Abilities: DIG"
+scene_path = "res://scenes/levels/dig_puzzle.tscn"
+
+[sub_resource type="Resource" id="Level_bridge_gap"]
+script = ExtResource("2_entry")
+number = 2
+title = "Bridge the Gap"
+description = "Build a persistent crossing in the mole's facing direction."
+ability_summary = "Abilities: BUILD"
+scene_path = "res://scenes/levels/build_puzzle.tscn"
+
+[sub_resource type="Resource" id="Level_down_across"]
+script = ExtResource("2_entry")
+number = 3
+title = "Down and Across"
+description = "Dig to the lower route, then build across its final gap."
+ability_summary = "Abilities: DIG + BUILD"
+scene_path = "res://scenes/levels/dig_build_puzzle.tscn"
+
+[resource]
+script = ExtResource("1_catalog")
+entries = Array[Resource]([SubResource("Level_first_dig"), SubResource("Level_bridge_gap"), SubResource("Level_down_across")])

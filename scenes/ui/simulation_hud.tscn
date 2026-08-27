@@ -117,6 +117,11 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Restart [R]"
 
+[node name="LevelSelectButton" type="Button" parent="Panel/Margin/Content/Controls"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Levels [Esc]"
+
 [node name="Help" type="Label" parent="Panel/Margin/Content"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.72, 0.76, 0.78, 1)
@@ -181,8 +186,19 @@ theme_override_font_sizes/font_size = 18
 text = "Saved 30 of 30 creatures."
 horizontal_alignment = 1
 
-[node name="ResultRestartButton" type="Button" parent="ResultOverlay/Center/Panel/Margin/Content"]
+[node name="ResultActions" type="HBoxContainer" parent="ResultOverlay/Center/Panel/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="ResultRestartButton" type="Button" parent="ResultOverlay/Center/Panel/Margin/Content/ResultActions"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(210, 48)
 layout_mode = 2
 text = "Restart Level [R]"
+
+[node name="ResultLevelSelectButton" type="Button" parent="ResultOverlay/Center/Panel/Margin/Content/ResultActions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(210, 48)
+layout_mode = 2
+text = "Choose Level [Esc]"

@@ -14,6 +14,7 @@ const BUILD_STEP_SIZE := Vector2(32.0, 16.0)
 @export var level_definition: LevelDefinition
 @export var diggable_terrain_path: NodePath = ^"World/Terrain/DiggableStartTerrain"
 @export var buildable_terrain_path: NodePath
+@export_file("*.tscn") var level_select_scene_path: String = "res://scenes/ui/level_select.tscn"
 
 @onready var spawner: CreatureSpawner = $World/CreatureSpawner
 @onready var exit_zone: ExitZone = $World/ExitZone
@@ -43,6 +44,7 @@ func _ready() -> void:
 	level_controller.level_failed.connect(_on_level_failed)
 	ability_controller.ability_assigned.connect(_on_ability_assigned)
 	hud.restart_requested.connect(_restart_level)
+	hud.level_select_requested.connect(_open_level_select)
 
 	level_controller.begin_level(level_definition)
 	ability_controller.set_dig_target_validator(_can_creature_dig)
@@ -140,9 +142,20 @@ func _lock_finished_level() -> void:
 
 
 func _restart_level() -> void:
-	simulation_controller.set_pause_locked(false)
-	simulation_controller.set_paused(false)
-	simulation_controller.set_speed(1.0)
+	_restore_default_simulation()
 	var reload_error := get_tree().reload_current_scene()
 	if reload_error != OK:
 		push_error("Could not restart the current level: %s" % error_string(reload_error))
+
+
+func _open_level_select() -> void:
+	_restore_default_simulation()
+	var change_error := get_tree().change_scene_to_file(level_select_scene_path)
+	if change_error != OK:
+		push_error("Could not open the level selection screen: %s" % error_string(change_error))
+
+
+func _restore_default_simulation() -> void:
+	simulation_controller.set_pause_locked(false)
+	simulation_controller.set_paused(false)
+	simulation_controller.set_speed(1.0)

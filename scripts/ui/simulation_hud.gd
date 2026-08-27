@@ -4,6 +4,7 @@ extends CanvasLayer
 const AbilityAssignmentControllerScript = preload("res://scripts/gameplay/ability_assignment_controller.gd")
 
 signal restart_requested
+signal level_select_requested
 
 @export var simulation_controller_path: NodePath
 
@@ -18,6 +19,7 @@ signal restart_requested
 @onready var speed_2_button: Button = %Speed2Button
 @onready var speed_4_button: Button = %Speed4Button
 @onready var restart_button: Button = %RestartButton
+@onready var level_select_button: Button = %LevelSelectButton
 @onready var dig_button: Button = %DigButton
 @onready var dig_inventory_label: Label = %DigInventoryLabel
 @onready var build_button: Button = %BuildButton
@@ -26,6 +28,7 @@ signal restart_requested
 @onready var result_title: Label = %ResultTitle
 @onready var result_details: Label = %ResultDetails
 @onready var result_restart_button: Button = %ResultRestartButton
+@onready var result_level_select_button: Button = %ResultLevelSelectButton
 
 var _controller: SimulationController
 var _level_controller: LevelController
@@ -50,6 +53,8 @@ func _ready() -> void:
 	speed_4_button.pressed.connect(_controller.set_speed.bind(4.0))
 	restart_button.pressed.connect(_request_restart)
 	result_restart_button.pressed.connect(_request_restart)
+	level_select_button.pressed.connect(_request_level_select)
+	result_level_select_button.pressed.connect(_request_level_select)
 
 	_paused = get_tree().paused
 	_speed = _controller.speed_multiplier
@@ -59,7 +64,12 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("level_restart"):
+	if event.is_action_pressed("level_select"):
+		var viewport := get_viewport()
+		if viewport != null:
+			viewport.set_input_as_handled()
+		_request_level_select()
+	elif event.is_action_pressed("level_restart"):
 		# Restart reloads the scene synchronously, so consume this event while the
 		# current HUD still has a valid viewport.
 		var viewport := get_viewport()
@@ -183,3 +193,7 @@ func _refresh_simulation_display() -> void:
 
 func _request_restart() -> void:
 	restart_requested.emit()
+
+
+func _request_level_select() -> void:
+	level_select_requested.emit()

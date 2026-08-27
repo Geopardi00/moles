@@ -140,7 +140,7 @@ Status: completed on 2026-08-27. Automated coverage verifies material-aware targ
 
 Prove the complete puzzle loop in a small data-driven level: creatures remain trapped on an upper route until one limited-use DIG assignment opens persistent destructible terrain, allowing the population to reach the exit below and complete the level. Restart must restore terrain, inventory, creatures, and counters.
 
-Status: completed on 2026-08-27. The new `First Dig` level launches as the project main scene with 10 creatures, an 8-creature requirement, and 3 DIG uses. Automated coverage confirms that no creature reaches the exit before intervention, one DIG opens the persistent route, all 10 are rescued, completion locks the simulation, and restart restores terrain, inventory, counters, pause, and 1× speed. Manual visual and gameplay testing has been accepted.
+Status: completed on 2026-08-27. The `First Dig` level has 10 creatures, an 8-creature requirement, and 3 DIG uses; it is now the first entry in the level catalog. Automated coverage confirms that no creature reaches the exit before intervention, one DIG opens the persistent route, all 10 are rescued, completion locks the simulation, and restart restores terrain, inventory, counters, pause, and 1× speed. Manual visual and gameplay testing has been accepted.
 
 ### Milestone 6 — BUILD Ability and Bridge Puzzle (complete)
 
@@ -153,6 +153,12 @@ Status: completed on 2026-08-27. The `Bridge the Gap` test level provides 2 BUIL
 Prove that the two implemented abilities compose in one authored solution rather than functioning only in isolated demonstrations. The population must first DIG through a sealed upper shelf, then BUILD across a gap on the lower route; neither intervention alone reaches the exit.
 
 Status: completed on 2026-08-27. The `Down and Across` level has 5 creatures, requires all 5 rescues, and provides exactly 1 DIG plus 1 BUILD. Automated coverage verifies independent inventory/HUD updates, persistent removal and addition in separate terrain masks, frozen BUILD progression while paused, the required two-action completion route, outcome locking, and restart restoration of both terrains and inventories. Manual visual and gameplay testing has been accepted.
+
+### Milestone 8 — Playable Level Flow (complete)
+
+Replace the editor-only level-launch workflow with a player-facing entry screen. Present the three authored puzzles from a data-driven catalog, launch any selected level, and allow return to level selection while running, paused, or viewing a completion/failure result.
+
+Status: completed on 2026-08-27. The project now starts on a `Moles` level-selection screen backed by `LevelCatalog` and `LevelMenuEntry` resources. All gameplay HUDs expose `Levels [Esc]`, result overlays expose `Choose Level [Esc]`, and navigation normalizes pause-lock and simulation speed before changing scenes. Automated coverage verifies ordered catalog rendering, loadable scene references, configured level launch, return from a locked/paused level, rebuilt menu state, and no leaked pause or speed state. Manual visual and navigation testing has been accepted.
 
 ## 8. Decisions already made
 
@@ -198,6 +204,7 @@ Status: completed on 2026-08-27. The `Down and Across` level has 5 creatures, re
 - Rescue requirements may be authored as an exact count or a percentage; percentage requirements round upward to a whole creature.
 - A reusable `LevelController` owns progress and outcome rules. Level scenes connect world events to it, while the HUD only presents its state and requests actions.
 - A reusable `GameplayLevel` coordinator now binds population, outcomes, abilities, destructible terrain, HUD, and restart behavior for both the movement lab and authored puzzle scenes.
+- The project entry point is a level-selection scene backed by a data-driven catalog resource. Gameplay levels own a configurable route back to this selector; returning from any simulation state clears pause locking, unpauses, and restores 1× speed before the scene change.
 - Restart reloads the current level scene and restores an unpaused 1× simulation with fresh counters.
 - The gameplay design resolution is 1920×1080, with `Camera2D.zoom` remaining at `Vector2(1, 1)` for the baseline view. World geometry, creature tuning, triggers, and camera bounds are authored directly for that coordinate system rather than using a scaled physics parent.
 
@@ -294,3 +301,4 @@ MovementTest (Node2D)
 - 2026-08-27: Accepted the `First Dig` manual gameplay test and completed Milestone 5.
 - 2026-08-27: Implemented and accepted Milestone 6's BUILD slice and `Bridge the Gap` level. One facing-dependent BUILD creates a persistent walkable bridge for all 5 creatures; automated and manual pause, inventory, completion, and restart verification passes.
 - 2026-08-27: Implemented and accepted Milestone 7's `Down and Across` puzzle, requiring exactly one DIG followed by one BUILD. Automated and manual verification proves both terrain mutations compose, all 5 creatures are rescued, and restart restores both systems.
+- 2026-08-27: Implemented and accepted Milestone 8's data-driven level-selection entry screen and in-level return navigation. Automated and manual verification confirms all three catalog entries, scene launch, and clean return from running, paused, and outcome states.
