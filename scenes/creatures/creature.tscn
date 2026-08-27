@@ -46,6 +46,12 @@ z_index = -1
 color = Color(0.92, 0.32, 0.22, 0.92)
 polygon = PackedVector2Array(-38, -7, -18, -7, -18, -25, -10, -25, -10, 25, -18, 25, -18, 7, -38, 7, 38, 7, 18, 7, 18, 25, 10, 25, 10, -25, 18, -25, 18, -7, 38, -7)
 
+[node name="BombEffect" type="Polygon2D" parent="VisualRoot"]
+visible = false
+z_index = -1
+color = Color(1, 0.48, 0.12, 0.95)
+polygon = PackedVector2Array(0, -34, 7, -16, 25, -25, 17, -7, 36, 0, 17, 7, 25, 25, 7, 16, 0, 34, -7, 16, -25, 25, -17, 7, -36, 0, -17, -7, -25, -25, -7, -16)
+
 [node name="Body" type="Polygon2D" parent="VisualRoot"]
 color = Color(0.36, 0.72, 0.48, 1)
 polygon = PackedVector2Array(-11.667, -16.667, 8.333, -16.667, 13.333, -8.333, 13.333, 11.667, 6.667, 18.333, -8.333, 18.333, -13.333, 10, -13.333, -10)

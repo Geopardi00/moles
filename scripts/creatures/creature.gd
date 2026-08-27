@@ -7,6 +7,7 @@ signal state_changed(previous: State, current: State)
 signal dig_step_requested(creature: Creature)
 signal build_step_requested(creature: Creature, step_index: int)
 signal blocker_redirected(blocker: Creature, creature: Creature)
+signal bomb_detonated(creature: Creature)
 
 enum State {
 	WALKING,
@@ -14,6 +15,7 @@ enum State {
 	DIGGING,
 	BUILDING,
 	BLOCKING,
+	BOMBING,
 	EXITING,
 	DEAD,
 }
@@ -26,6 +28,7 @@ enum State {
 @export_range(0.05, 1.0, 0.01, "or_greater") var build_step_interval: float = 0.14
 @export_range(1, 32, 1, "or_greater") var build_step_count: int = 12
 @export_range(0.5, 30.0, 0.1, "or_greater") var block_duration: float = 5.5
+@export_range(0.25, 10.0, 0.05, "or_greater") var bomb_fuse_duration: float = 1.5
 @export var show_state_label: bool = false
 
 var direction: int = 1
@@ -34,6 +37,7 @@ var _dig_step_time_remaining: float = 0.0
 var _build_step_time_remaining: float = 0.0
 var _build_step_index: int = 0
 var _block_time_remaining: float = 0.0
+var _bomb_time_remaining: float = 0.0
 
 @onready var visual_root: Node2D = $VisualRoot
 @onready var selection_highlight: Polygon2D = $SelectionHighlight
@@ -41,6 +45,7 @@ var _block_time_remaining: float = 0.0
 @onready var build_effect: Polygon2D = $VisualRoot/BuildEffect
 @onready var block_effect: Polygon2D = $VisualRoot/BlockEffect
 @onready var blocker_area: Area2D = $BlockerArea
+@onready var bomb_effect: Polygon2D = $VisualRoot/BombEffect
 @onready var state_label: Label = $StateLabel
 
 
@@ -82,6 +87,14 @@ func _physics_process(delta: float) -> void:
 		_block_time_remaining -= delta
 		if _block_time_remaining <= 0.0:
 			finish_block()
+		return
+	if current_state == State.BOMBING:
+		velocity = Vector2.ZERO
+		_bomb_time_remaining -= delta
+		if _bomb_time_remaining <= 0.0:
+			bomb_detonated.emit(self)
+			if current_state == State.BOMBING:
+				die()
 		return
 
 	velocity.x = walk_speed * float(direction)
@@ -166,6 +179,16 @@ func redirect_from_blocker(blocker_x: float) -> bool:
 	return true
 
 
+func begin_bomb() -> bool:
+	if current_state != State.WALKING:
+		return false
+	_bomb_time_remaining = bomb_fuse_duration
+	bomb_effect.visible = true
+	velocity = Vector2.ZERO
+	_transition_to(State.BOMBING)
+	return true
+
+
 func set_target_highlighted(is_highlighted: bool) -> void:
 	selection_highlight.visible = is_highlighted
 
@@ -228,6 +251,7 @@ func _finish_lifecycle() -> void:
 	dig_effect.visible = false
 	build_effect.visible = false
 	block_effect.visible = false
+	bomb_effect.visible = false
 	blocker_area.set_deferred("monitoring", false)
 	velocity = Vector2.ZERO
 	set_physics_process(false)

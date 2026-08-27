@@ -30,10 +30,10 @@ func _run_test() -> void:
 	await get_tree().process_frame
 	if get_tree().paused or not is_equal_approx(Engine.time_scale, 1.0):
 		failures.append("Opening level selection did not normalize pause and speed state.")
-	if menu.catalog == null or menu.catalog.entries.size() != 4:
-		failures.append("The level catalog should expose all 4 authored puzzles.")
-	if menu.level_buttons.size() != 4:
-		failures.append("The level-selection screen should create 4 launch buttons.")
+	if menu.catalog == null or menu.catalog.entries.size() != 5:
+		failures.append("The level catalog should expose all 5 authored puzzles.")
+	if menu.level_buttons.size() != 5:
+		failures.append("The level-selection screen should create 5 launch buttons.")
 	else:
 		if "First Dig" not in menu.level_buttons[0].text:
 			failures.append("The first catalog entry was not rendered in order.")
@@ -43,6 +43,8 @@ func _run_test() -> void:
 			failures.append("The third catalog entry was not rendered in order.")
 		if "Hold the Line" not in menu.level_buttons[3].text:
 			failures.append("The fourth catalog entry was not rendered in order.")
+		if "Breaching Charge" not in menu.level_buttons[4].text:
+			failures.append("The fifth catalog entry was not rendered in order.")
 	for entry in menu.catalog.entries:
 		if entry == null or not ResourceLoader.exists(entry.scene_path, "PackedScene"):
 			failures.append("Catalog entry '%s' does not point to a loadable level scene." % entry.title)
@@ -50,7 +52,7 @@ func _run_test() -> void:
 	remove_child(menu)
 	get_tree().root.add_child(menu)
 	get_tree().current_scene = menu
-	if menu.level_buttons.size() == 4:
+	if menu.level_buttons.size() == 5:
 		menu.level_buttons[2].pressed.emit()
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -74,7 +76,7 @@ func _run_test() -> void:
 		else:
 			if get_tree().paused or not is_equal_approx(Engine.time_scale, 1.0):
 				failures.append("Returning from a locked level leaked pause or speed state.")
-			if returned_menu.level_buttons.size() != 4:
+			if returned_menu.level_buttons.size() != 5:
 				failures.append("The returned level-selection screen did not rebuild its catalog.")
 
 	var final_scene := get_tree().current_scene

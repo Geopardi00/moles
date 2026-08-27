@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="LevelDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/levels/level_definition.gd" id="1_definition"]
+
+[resource]
+script = ExtResource("1_definition")
+display_name = "Breaching Charge"
+total_creatures = 5
+spawn_interval = 1.8
+initial_direction = 1
+rescue_requirement_mode = 1
+required_rescue_percentage = 80.0
+dig_ability_count = 0
+build_ability_count = 0
+block_ability_count = 0
+bomb_ability_count = 1

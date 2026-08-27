@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="LevelCatalog" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="LevelCatalog" load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/level_catalog.gd" id="1_catalog"]
 [ext_resource type="Script" path="res://scripts/ui/level_menu_entry.gd" id="2_entry"]
@@ -35,6 +35,14 @@ description = "Turn the following moles away from danger without physical collis
 ability_summary = "Abilities: BLOCK"
 scene_path = "res://scenes/levels/block_puzzle.tscn"
 
+[sub_resource type="Resource" id="Level_breaching_charge"]
+script = ExtResource("2_entry")
+number = 5
+title = "Breaching Charge"
+description = "Sacrifice one mole to blast a persistent opening through the wall."
+ability_summary = "Abilities: BOMB"
+scene_path = "res://scenes/levels/bomb_puzzle.tscn"
+
 [resource]
 script = ExtResource("1_catalog")
-entries = Array[Resource]([SubResource("Level_first_dig"), SubResource("Level_bridge_gap"), SubResource("Level_down_across"), SubResource("Level_hold_line")])
+entries = Array[Resource]([SubResource("Level_first_dig"), SubResource("Level_bridge_gap"), SubResource("Level_down_across"), SubResource("Level_hold_line"), SubResource("Level_breaching_charge")])

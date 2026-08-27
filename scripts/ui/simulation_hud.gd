@@ -26,6 +26,8 @@ signal level_select_requested
 @onready var build_inventory_label: Label = %BuildInventoryLabel
 @onready var block_button: Button = %BlockButton
 @onready var block_inventory_label: Label = %BlockInventoryLabel
+@onready var bomb_button: Button = %BombButton
+@onready var bomb_inventory_label: Label = %BombInventoryLabel
 @onready var result_overlay: Control = %ResultOverlay
 @onready var result_title: Label = %ResultTitle
 @onready var result_details: Label = %ResultDetails
@@ -109,6 +111,7 @@ func bind_abilities(controller: AbilityAssignmentControllerScript) -> void:
 	dig_button.pressed.connect(_ability_controller.toggle_dig_selection)
 	build_button.pressed.connect(_ability_controller.toggle_build_selection)
 	block_button.pressed.connect(_ability_controller.toggle_block_selection)
+	bomb_button.pressed.connect(_ability_controller.toggle_bomb_selection)
 	_refresh_ability_display()
 
 
@@ -165,7 +168,8 @@ func _on_selected_ability_changed(_ability: int) -> void:
 func _on_ability_inventory_changed(
 	_dig_remaining: int,
 	_build_remaining: int,
-	_block_remaining: int
+	_block_remaining: int,
+	_bomb_remaining: int
 ) -> void:
 	_refresh_ability_display()
 
@@ -174,6 +178,7 @@ func _refresh_ability_display() -> void:
 	var dig_remaining: int = int(_ability_controller.dig_remaining) if _ability_controller != null else 0
 	var build_remaining: int = int(_ability_controller.build_remaining) if _ability_controller != null else 0
 	var block_remaining: int = int(_ability_controller.block_remaining) if _ability_controller != null else 0
+	var bomb_remaining: int = int(_ability_controller.bomb_remaining) if _ability_controller != null else 0
 	var dig_selected: bool = (
 		_ability_controller != null
 		and _ability_controller.is_dig_selected()
@@ -186,6 +191,10 @@ func _refresh_ability_display() -> void:
 		_ability_controller != null
 		and _ability_controller.is_block_selected()
 	)
+	var bomb_selected: bool = (
+		_ability_controller != null
+		and _ability_controller.is_bomb_selected()
+	)
 	dig_inventory_label.text = "DIG remaining: %d" % dig_remaining
 	dig_button.button_pressed = dig_selected
 	dig_button.disabled = _level_finished or dig_remaining <= 0
@@ -195,6 +204,9 @@ func _refresh_ability_display() -> void:
 	block_inventory_label.text = "BLOCK remaining: %d" % block_remaining
 	block_button.button_pressed = block_selected
 	block_button.disabled = _level_finished or block_remaining <= 0
+	bomb_inventory_label.text = "BOMB remaining: %d" % bomb_remaining
+	bomb_button.button_pressed = bomb_selected
+	bomb_button.disabled = _level_finished or bomb_remaining <= 0
 
 
 func _refresh_simulation_display() -> void:

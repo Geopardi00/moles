@@ -9,7 +9,7 @@ script = ExtResource("1_hud")
 [node name="Panel" type="PanelContainer" parent="."]
 offset_left = 16.0
 offset_top = 16.0
-offset_right = 980.0
+offset_right = 1260.0
 offset_bottom = 244.0
 
 [node name="Margin" type="MarginContainer" parent="Panel"]
@@ -95,6 +95,17 @@ text = "BLOCK"
 unique_name_in_owner = true
 layout_mode = 2
 text = "BLOCK remaining: 0"
+
+[node name="BombButton" type="Button" parent="Panel/Margin/Content/Abilities"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+text = "BOMB"
+
+[node name="BombInventoryLabel" type="Label" parent="Panel/Margin/Content/Abilities"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "BOMB remaining: 0"
 
 [node name="Controls" type="HBoxContainer" parent="Panel/Margin/Content"]
 layout_mode = 2

@@ -158,7 +158,7 @@ Status: completed on 2026-08-27. The `Down and Across` level has 5 creatures, re
 
 Replace the editor-only level-launch workflow with a player-facing entry screen. Present authored puzzles from a data-driven catalog, launch any selected level, and allow return to level selection while running, paused, or viewing a completion/failure result.
 
-Status: completed on 2026-08-27. The project now starts on a `Moles` level-selection screen backed by `LevelCatalog` and `LevelMenuEntry` resources. All gameplay HUDs expose `Levels [Esc]`, result overlays expose `Choose Level [Esc]`, and navigation normalizes pause-lock and simulation speed before changing scenes. Automated coverage verifies ordered catalog rendering, loadable scene references, configured level launch, return from a locked/paused level, rebuilt menu state, and no leaked pause or speed state. Manual visual and navigation testing has been accepted. The catalog currently contains four puzzle levels.
+Status: completed on 2026-08-27. The project now starts on a `Moles` level-selection screen backed by `LevelCatalog` and `LevelMenuEntry` resources. All gameplay HUDs expose `Levels [Esc]`, result overlays expose `Choose Level [Esc]`, and navigation normalizes pause-lock and simulation speed before changing scenes. Automated coverage verifies ordered catalog rendering, loadable scene references, configured level launch, return from a locked/paused level, rebuilt menu state, and no leaked pause or speed state. Manual visual and navigation testing has been accepted. The catalog currently contains five puzzle levels.
 
 ### Milestone 9 — BLOCK Ability and Crowd Redirection (complete)
 
@@ -166,11 +166,17 @@ Add BLOCK as the first ability whose active creature influences other autonomous
 
 Status: completed on 2026-08-27. The `Hold the Line` level provides exactly 1 BLOCK for 5 creatures and requires 4 rescues. The leader blocks near a dangerous ledge, redirects all 4 followers toward the exit, then resumes walking and becomes the permitted single loss. Automated coverage verifies paused assignment, independent three-ability inventory/HUD state, frozen blocker timing while paused, exactly four trigger-based redirects, the intended 4-saved/1-lost completion, outcome locking, and full restart restoration. Manual visual and gameplay testing has been accepted.
 
+### Milestone 10 — BOMB Ability and Delayed Terrain Breach (complete)
+
+Add BOMB as a delayed, direction-aware terrain intervention with an intentional creature cost. A valid walking mole becomes stationary in `BOMBING`; its fuse advances only with the simulation. Detonation excavates a persistent circular opening ahead of its facing direction, rebuilds affected terrain collision, and resolves the assigned mole as lost.
+
+Status: completed on 2026-08-27. The `Breaching Charge` level provides exactly 1 BOMB for 5 creatures and requires 4 rescues. The leader detonates beside a destructible wall, opening a complete route for the remaining 4 creatures. Automated coverage verifies material-aware targeting, paused assignment and fuse, independent four-ability inventory/HUD state, no terrain change before detonation, full-depth persistent excavation, the bomber's registered loss, 4-saved/1-lost completion, outcome locking, and full restart restoration. Manual visual and gameplay testing has been accepted.
+
 ## 8. Decisions already made
 
 - Godot 4.6, GDScript, and 2D
 - `CharacterBody2D` for normal creatures; not `RigidBody2D`
-- Creature states through Milestone 9: `WALKING`, `FALLING`, `DIGGING`, `BUILDING`, `BLOCKING`, `EXITING`, and `DEAD`
+- Creature states through Milestone 10: `WALKING`, `FALLING`, `DIGGING`, `BUILDING`, `BLOCKING`, `BOMBING`, `EXITING`, and `DEAD`
 - Static Godot collision shapes/polygons for Milestone 0 terrain
 - No normal creature-to-creature physics collision
 - No automatic ledge avoidance
@@ -202,6 +208,7 @@ Status: completed on 2026-08-27. The `Hold the Line` level provides exactly 1 BL
 - DIG targeting is valid only while a creature is `WALKING` with destructible material directly beneath it. One accepted assignment removes an initial circular mask region, then the creature descends and requests repeated excavation steps until a step removes no further destructible cells. Collision is rebuilt only for affected chunks; pausing freezes both descent and subsequent excavation steps.
 - BUILD targeting is valid only for a `WALKING` creature when the first bridge segment is in bounds and empty. One accepted assignment places a horizontal sequence of persistent mask-terrain segments in the creature's facing direction, then returns it to `WALKING`. Construction waits while paused and uses top-surface-only collision so bridge ends connect cleanly to authored platforms without artificial vertical walls.
 - BLOCK targeting accepts a `WALKING` creature. The blocker becomes stationary for a fixed duration and enables a non-physical `Area2D` that reverses only walkers approaching from either side. Blocking duration and redirection freeze with the simulation; the assigned creature returns to `WALKING` when time expires.
+- BOMB targeting accepts a `WALKING` creature only when destructible material is found within several probes ahead of its facing direction. The creature remains stationary through a paused-aware fuse; detonation excavates a circular region centered ahead of that direction, rebuilds touched collision chunks, and registers the bomber as lost after the terrain mutation.
 - Destructible terrain will proceed from the custom fine-resolution mask with chunk-local collision rebuilding tested in Milestone 3. Visual rendering remains separate from mask/material data. Collision is generated only for exposed boundaries, merged into collinear segments within each touched chunk.
 - The world uses normal pausable processing. Simulation control, HUD, and camera use `PROCESS_MODE_ALWAYS` so they remain interactive while `SceneTree.paused` freezes the world.
 - Simulation rates use `Engine.time_scale` values of 1, 2, and 4. Pause uses `SceneTree.paused`, not a zero time scale.
@@ -310,3 +317,4 @@ MovementTest (Node2D)
 - 2026-08-27: Implemented and accepted Milestone 7's `Down and Across` puzzle, requiring exactly one DIG followed by one BUILD. Automated and manual verification proves both terrain mutations compose, all 5 creatures are rescued, and restart restores both systems.
 - 2026-08-27: Implemented and accepted Milestone 8's data-driven level-selection entry screen and in-level return navigation. Automated and manual verification confirms catalog rendering, scene launch, and clean return from running, paused, and outcome states.
 - 2026-08-27: Implemented and accepted Milestone 9's BLOCK ability and `Hold the Line` puzzle. A temporary blocker redirects four followers through an explicit trigger area without physical creature collision; automated and manual assignment, pause, 4/5 outcome, and restart verification passes.
+- 2026-08-27: Implemented and accepted Milestone 10's BOMB ability and `Breaching Charge` puzzle. A paused-aware directional charge sacrifices its assigned mole and opens a full-depth persistent wall breach for four followers; automated and manual 4/5 outcome and restart verification passes.

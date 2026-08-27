@@ -10,6 +10,9 @@ const BUILD_FEET_OFFSET := Vector2(0.0, 20.0)
 const BUILD_START_OFFSET := 12.0
 const BUILD_STEP_ADVANCE := 28.0
 const BUILD_STEP_SIZE := Vector2(32.0, 16.0)
+const BOMB_PROBE_DISTANCES: Array[float] = [48.0, 72.0, 96.0]
+const BOMB_CENTER_DISTANCE := 72.0
+const BOMB_RADIUS := 105.0
 
 @export var level_definition: LevelDefinition
 @export var diggable_terrain_path: NodePath = ^"World/Terrain/DiggableStartTerrain"
@@ -49,6 +52,7 @@ func _ready() -> void:
 	level_controller.begin_level(level_definition)
 	ability_controller.set_dig_target_validator(_can_creature_dig)
 	ability_controller.set_build_target_validator(_can_creature_build)
+	ability_controller.set_bomb_target_validator(_can_creature_bomb)
 	ability_controller.begin_level(level_definition)
 	hud.bind_level(level_controller)
 	hud.bind_abilities(ability_controller)
@@ -57,6 +61,7 @@ func _ready() -> void:
 func _on_creature_spawned(creature: Creature, spawned_count: int) -> void:
 	creature.dig_step_requested.connect(_on_creature_dig_step)
 	creature.build_step_requested.connect(_on_creature_build_step)
+	creature.bomb_detonated.connect(_on_creature_bomb_detonated)
 	level_controller.register_spawn(spawned_count)
 
 
@@ -92,6 +97,15 @@ func _on_creature_build_step(creature: Creature, step_index: int) -> void:
 		creature.finish_build()
 
 
+func _on_creature_bomb_detonated(creature: Creature) -> void:
+	diggable_terrain.excavate_circle(
+		diggable_terrain.to_local(_get_bomb_center(creature)),
+		BOMB_RADIUS
+	)
+	if creature.die():
+		level_controller.register_lost()
+
+
 func _excavate_for_creature(creature: Creature) -> int:
 	return diggable_terrain.excavate_circle(
 		diggable_terrain.to_local(creature.global_position + DIG_CENTER_OFFSET),
@@ -112,6 +126,14 @@ func _can_creature_build(creature: Creature) -> bool:
 	return terrain_rect.encloses(first_step) and buildable_terrain.get_material_at(first_step.get_center()) == 0
 
 
+func _can_creature_bomb(creature: Creature) -> bool:
+	for distance in BOMB_PROBE_DISTANCES:
+		var world_probe := creature.global_position + Vector2(float(creature.direction) * distance, 0.0)
+		if diggable_terrain.get_material_at(diggable_terrain.to_local(world_probe)) != 0:
+			return true
+	return false
+
+
 func _build_for_creature(creature: Creature, step_index: int) -> int:
 	return buildable_terrain.fill_rectangle(_get_build_rect(creature, step_index))
 
@@ -126,6 +148,13 @@ func _get_build_rect(creature: Creature, step_index: int) -> Rect2:
 	)
 	var world_position := Vector2(start_x, feet_world.y)
 	return Rect2(buildable_terrain.to_local(world_position), BUILD_STEP_SIZE)
+
+
+func _get_bomb_center(creature: Creature) -> Vector2:
+	return creature.global_position + Vector2(
+		float(creature.direction) * BOMB_CENTER_DISTANCE,
+		0.0
+	)
 
 
 func _on_level_completed(_saved: int, _total: int) -> void:

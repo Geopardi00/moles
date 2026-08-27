@@ -1,0 +1,132 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://scripts/levels/gameplay_level.gd" id="1_level"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/creature_spawner.tscn" id="2_spawner"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/exit_zone.tscn" id="3_exit"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/kill_zone.tscn" id="4_kill"]
+[ext_resource type="Script" path="res://scripts/core/simulation_controller.gd" id="5_sim"]
+[ext_resource type="Script" path="res://scripts/camera/free_camera_2d.gd" id="6_camera"]
+[ext_resource type="PackedScene" path="res://scenes/ui/simulation_hud.tscn" id="7_hud"]
+[ext_resource type="Resource" path="res://resources/levels/bomb_puzzle_level.tres" id="8_definition"]
+[ext_resource type="Script" path="res://scripts/levels/level_controller.gd" id="9_level_controller"]
+[ext_resource type="Script" path="res://scripts/gameplay/ability_assignment_controller.gd" id="10_ability_controller"]
+[ext_resource type="Script" path="res://scripts/terrain/chunked_mask_terrain.gd" id="11_terrain"]
+
+[sub_resource type="SegmentShape2D" id="Segment_runway"]
+a = Vector2(-850, 0)
+b = Vector2(850, 0)
+
+[sub_resource type="RectangleShape2D" id="Rectangle_left_wall"]
+size = Vector2(40, 400)
+
+[node name="BombPuzzle" type="Node2D"]
+script = ExtResource("1_level")
+level_definition = ExtResource("8_definition")
+
+[node name="World" type="Node2D" parent="."]
+
+[node name="Background" type="Polygon2D" parent="World"]
+z_index = -20
+color = Color(0.07, 0.065, 0.085, 1)
+polygon = PackedVector2Array(0, 0, 1920, 0, 1920, 1080, 0, 1080)
+
+[node name="Backdrop" type="Polygon2D" parent="World"]
+z_index = -15
+color = Color(0.17, 0.105, 0.08, 1)
+polygon = PackedVector2Array(0, 780, 0, 550, 310, 410, 630, 560, 980, 370, 1320, 540, 1620, 390, 1920, 530, 1920, 780)
+
+[node name="Terrain" type="Node2D" parent="World"]
+
+[node name="DiggableStartTerrain" type="Node2D" parent="World/Terrain"]
+position = Vector2(800, 160)
+script = ExtResource("11_terrain")
+grid_size = Vector2i(8, 30)
+terrain_color = Color(0.46, 0.29, 0.17, 1)
+initial_shape = 1
+
+[node name="Runway" type="StaticBody2D" parent="World/Terrain"]
+position = Vector2(950, 400)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Visual" type="Polygon2D" parent="World/Terrain/Runway"]
+color = Color(0.31, 0.27, 0.22, 1)
+polygon = PackedVector2Array(-850, 0, 850, 0, 850, 64, -850, 64)
+
+[node name="TopEdge" type="Polygon2D" parent="World/Terrain/Runway"]
+color = Color(0.43, 0.67, 0.32, 1)
+polygon = PackedVector2Array(-850, 0, 850, 0, 850, 14, -850, 14)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Terrain/Runway"]
+shape = SubResource("Segment_runway")
+
+[node name="LeftWall" type="StaticBody2D" parent="World/Terrain"]
+position = Vector2(80, 220)
+collision_layer = 1
+collision_mask = 0
+
+[node name="Visual" type="Polygon2D" parent="World/Terrain/LeftWall"]
+color = Color(0.3, 0.33, 0.36, 1)
+polygon = PackedVector2Array(-20, -200, 20, -200, 20, 200, -20, 200)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Terrain/LeftWall"]
+shape = SubResource("Rectangle_left_wall")
+
+[node name="BombMarker" type="Polygon2D" parent="World"]
+z_index = -1
+color = Color(1, 0.48, 0.12, 0.22)
+polygon = PackedVector2Array(700, 240, 765, 240, 765, 400, 700, 400)
+
+[node name="BombMarkerLabel" type="Label" parent="World"]
+position = Vector2(682, 205)
+theme_override_colors/font_color = Color(1, 0.62, 0.24, 1)
+theme_override_font_sizes/font_size = 18
+text = "BOMB HERE"
+
+[node name="Instructions" type="Label" parent="World"]
+position = Vector2(430, 80)
+theme_override_colors/font_color = Color(0.9, 0.92, 0.92, 1)
+theme_override_colors/font_outline_color = Color(0.04, 0.06, 0.07, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 28
+text = "Use one BOMB to breach the wall for the remaining moles"
+
+[node name="ExitRouteLabel" type="Label" parent="World"]
+position = Vector2(1120, 300)
+theme_override_colors/font_color = Color(0.61, 0.88, 0.74, 1)
+theme_override_font_sizes/font_size = 22
+text = "EXIT ROUTE →"
+
+[node name="Creatures" type="Node2D" parent="World"]
+
+[node name="CreatureSpawner" parent="World" instance=ExtResource("2_spawner")]
+position = Vector2(300, 350)
+creature_container_path = NodePath("../Creatures")
+
+[node name="ExitZone" parent="World" instance=ExtResource("3_exit")]
+position = Vector2(1650, 325)
+
+[node name="KillZone" parent="World" instance=ExtResource("4_kill")]
+position = Vector2(960, 1050)
+
+[node name="SimulationController" type="Node" parent="."]
+process_mode = 3
+script = ExtResource("5_sim")
+
+[node name="LevelController" type="Node" parent="."]
+script = ExtResource("9_level_controller")
+
+[node name="AbilityAssignmentController" type="Node" parent="."]
+process_mode = 3
+script = ExtResource("10_ability_controller")
+
+[node name="CameraRig" type="Node2D" parent="."]
+process_mode = 3
+position = Vector2(960, 540)
+script = ExtResource("6_camera")
+movement_bounds = Rect2(0, 0, 1920, 1080)
+
+[node name="Camera2D" type="Camera2D" parent="CameraRig"]
+
+[node name="HUD" parent="." instance=ExtResource("7_hud")]
+simulation_controller_path = NodePath("../SimulationController")

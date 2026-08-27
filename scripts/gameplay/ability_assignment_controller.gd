@@ -4,7 +4,12 @@ extends Node
 ## Owns player ability selection, targeting, and limited-use inventory.
 
 signal selected_ability_changed(ability: Ability)
-signal inventory_changed(dig_remaining: int, build_remaining: int, block_remaining: int)
+signal inventory_changed(
+	dig_remaining: int,
+	build_remaining: int,
+	block_remaining: int,
+	bomb_remaining: int
+)
 signal ability_assigned(creature: Creature, ability: Ability)
 
 enum Ability {
@@ -12,6 +17,7 @@ enum Ability {
 	DIG,
 	BUILD,
 	BLOCK,
+	BOMB,
 }
 
 const SELECTION_COLLISION_MASK := 1 << 4
@@ -20,10 +26,12 @@ var selected_ability: Ability = Ability.NONE
 var dig_remaining: int = 0
 var build_remaining: int = 0
 var block_remaining: int = 0
+var bomb_remaining: int = 0
 var assignment_enabled: bool = true
 var hovered_creature: Creature
 var dig_target_validator: Callable
 var build_target_validator: Callable
+var bomb_target_validator: Callable
 
 
 func _ready() -> void:
@@ -57,9 +65,10 @@ func begin_level(level_definition: LevelDefinition) -> void:
 	dig_remaining = maxi(level_definition.dig_ability_count, 0)
 	build_remaining = maxi(level_definition.build_ability_count, 0)
 	block_remaining = maxi(level_definition.block_ability_count, 0)
+	bomb_remaining = maxi(level_definition.bomb_ability_count, 0)
 	assignment_enabled = true
 	set_selected_ability(Ability.NONE)
-	inventory_changed.emit(dig_remaining, build_remaining, block_remaining)
+	inventory_changed.emit(dig_remaining, build_remaining, block_remaining, bomb_remaining)
 
 
 func set_dig_target_validator(validator: Callable) -> void:
@@ -68,6 +77,10 @@ func set_dig_target_validator(validator: Callable) -> void:
 
 func set_build_target_validator(validator: Callable) -> void:
 	build_target_validator = validator
+
+
+func set_bomb_target_validator(validator: Callable) -> void:
+	bomb_target_validator = validator
 
 
 func toggle_dig_selection() -> void:
@@ -106,12 +119,26 @@ func is_block_selected() -> bool:
 	return selected_ability == Ability.BLOCK
 
 
+func toggle_bomb_selection() -> void:
+	set_selected_ability(Ability.NONE if selected_ability == Ability.BOMB else Ability.BOMB)
+
+
+func select_bomb() -> void:
+	set_selected_ability(Ability.BOMB)
+
+
+func is_bomb_selected() -> bool:
+	return selected_ability == Ability.BOMB
+
+
 func set_selected_ability(ability: Ability) -> void:
 	if ability == Ability.DIG and (dig_remaining <= 0 or not assignment_enabled):
 		ability = Ability.NONE
 	elif ability == Ability.BUILD and (build_remaining <= 0 or not assignment_enabled):
 		ability = Ability.NONE
 	elif ability == Ability.BLOCK and (block_remaining <= 0 or not assignment_enabled):
+		ability = Ability.NONE
+	elif ability == Ability.BOMB and (bomb_remaining <= 0 or not assignment_enabled):
 		ability = Ability.NONE
 	if selected_ability == ability:
 		return
@@ -164,7 +191,7 @@ func assign_selected_ability(creature: Creature) -> bool:
 			if dig_remaining <= 0 or not creature.begin_dig():
 				return false
 			dig_remaining -= 1
-			inventory_changed.emit(dig_remaining, build_remaining, block_remaining)
+			inventory_changed.emit(dig_remaining, build_remaining, block_remaining, bomb_remaining)
 			ability_assigned.emit(creature, Ability.DIG)
 			if dig_remaining == 0:
 				set_selected_ability(Ability.NONE)
@@ -173,7 +200,7 @@ func assign_selected_ability(creature: Creature) -> bool:
 			if build_remaining <= 0 or not creature.begin_build():
 				return false
 			build_remaining -= 1
-			inventory_changed.emit(dig_remaining, build_remaining, block_remaining)
+			inventory_changed.emit(dig_remaining, build_remaining, block_remaining, bomb_remaining)
 			ability_assigned.emit(creature, Ability.BUILD)
 			if build_remaining == 0:
 				set_selected_ability(Ability.NONE)
@@ -182,9 +209,18 @@ func assign_selected_ability(creature: Creature) -> bool:
 			if block_remaining <= 0 or not creature.begin_block():
 				return false
 			block_remaining -= 1
-			inventory_changed.emit(dig_remaining, build_remaining, block_remaining)
+			inventory_changed.emit(dig_remaining, build_remaining, block_remaining, bomb_remaining)
 			ability_assigned.emit(creature, Ability.BLOCK)
 			if block_remaining == 0:
+				set_selected_ability(Ability.NONE)
+			return true
+		Ability.BOMB:
+			if bomb_remaining <= 0 or not creature.begin_bomb():
+				return false
+			bomb_remaining -= 1
+			inventory_changed.emit(dig_remaining, build_remaining, block_remaining, bomb_remaining)
+			ability_assigned.emit(creature, Ability.BOMB)
+			if bomb_remaining == 0:
 				set_selected_ability(Ability.NONE)
 			return true
 	return false
@@ -200,6 +236,8 @@ func _is_valid_target(creature: Creature) -> bool:
 			return build_target_validator.is_null() or bool(build_target_validator.call(creature))
 		Ability.BLOCK:
 			return true
+		Ability.BOMB:
+			return bomb_target_validator.is_null() or bool(bomb_target_validator.call(creature))
 	return false
 
 
