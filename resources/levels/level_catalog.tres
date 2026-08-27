@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="LevelCatalog" load_steps=8 format=3]
+[gd_resource type="Resource" script_class="LevelCatalog" load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/level_catalog.gd" id="1_catalog"]
 [ext_resource type="Script" path="res://scripts/ui/level_menu_entry.gd" id="2_entry"]
@@ -43,6 +43,14 @@ description = "Sacrifice one mole to blast a persistent opening through the wall
 ability_summary = "Abilities: BOMB"
 scene_path = "res://scenes/levels/bomb_puzzle.tscn"
 
+[sub_resource type="Resource" id="Level_downward_passage"]
+script = ExtResource("2_entry")
+number = 6
+title = "Downward Passage"
+description = "Carve a facing-dependent diagonal tunnel through the shelf."
+ability_summary = "Abilities: MINE"
+scene_path = "res://scenes/levels/mine_puzzle.tscn"
+
 [resource]
 script = ExtResource("1_catalog")
-entries = Array[Resource]([SubResource("Level_first_dig"), SubResource("Level_bridge_gap"), SubResource("Level_down_across"), SubResource("Level_hold_line"), SubResource("Level_breaching_charge")])
+entries = Array[Resource]([SubResource("Level_first_dig"), SubResource("Level_bridge_gap"), SubResource("Level_down_across"), SubResource("Level_hold_line"), SubResource("Level_breaching_charge"), SubResource("Level_downward_passage")])

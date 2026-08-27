@@ -22,6 +22,8 @@ signal level_select_requested
 @onready var level_select_button: Button = %LevelSelectButton
 @onready var dig_button: Button = %DigButton
 @onready var dig_inventory_label: Label = %DigInventoryLabel
+@onready var mine_button: Button = %MineButton
+@onready var mine_inventory_label: Label = %MineInventoryLabel
 @onready var build_button: Button = %BuildButton
 @onready var build_inventory_label: Label = %BuildInventoryLabel
 @onready var block_button: Button = %BlockButton
@@ -109,6 +111,7 @@ func bind_abilities(controller: AbilityAssignmentControllerScript) -> void:
 	_ability_controller.selected_ability_changed.connect(_on_selected_ability_changed)
 	_ability_controller.inventory_changed.connect(_on_ability_inventory_changed)
 	dig_button.pressed.connect(_ability_controller.toggle_dig_selection)
+	mine_button.pressed.connect(_ability_controller.toggle_mine_selection)
 	build_button.pressed.connect(_ability_controller.toggle_build_selection)
 	block_button.pressed.connect(_ability_controller.toggle_block_selection)
 	bomb_button.pressed.connect(_ability_controller.toggle_bomb_selection)
@@ -167,6 +170,7 @@ func _on_selected_ability_changed(_ability: int) -> void:
 
 func _on_ability_inventory_changed(
 	_dig_remaining: int,
+	_mine_remaining: int,
 	_build_remaining: int,
 	_block_remaining: int,
 	_bomb_remaining: int
@@ -176,12 +180,17 @@ func _on_ability_inventory_changed(
 
 func _refresh_ability_display() -> void:
 	var dig_remaining: int = int(_ability_controller.dig_remaining) if _ability_controller != null else 0
+	var mine_remaining: int = int(_ability_controller.mine_remaining) if _ability_controller != null else 0
 	var build_remaining: int = int(_ability_controller.build_remaining) if _ability_controller != null else 0
 	var block_remaining: int = int(_ability_controller.block_remaining) if _ability_controller != null else 0
 	var bomb_remaining: int = int(_ability_controller.bomb_remaining) if _ability_controller != null else 0
 	var dig_selected: bool = (
 		_ability_controller != null
 		and _ability_controller.is_dig_selected()
+	)
+	var mine_selected: bool = (
+		_ability_controller != null
+		and _ability_controller.is_mine_selected()
 	)
 	var build_selected: bool = (
 		_ability_controller != null
@@ -198,6 +207,9 @@ func _refresh_ability_display() -> void:
 	dig_inventory_label.text = "DIG remaining: %d" % dig_remaining
 	dig_button.button_pressed = dig_selected
 	dig_button.disabled = _level_finished or dig_remaining <= 0
+	mine_inventory_label.text = "MINE remaining: %d" % mine_remaining
+	mine_button.button_pressed = mine_selected
+	mine_button.disabled = _level_finished or mine_remaining <= 0
 	build_inventory_label.text = "BUILD remaining: %d" % build_remaining
 	build_button.button_pressed = build_selected
 	build_button.disabled = _level_finished or build_remaining <= 0

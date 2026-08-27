@@ -5,6 +5,7 @@ extends CharacterBody2D
 
 signal state_changed(previous: State, current: State)
 signal dig_step_requested(creature: Creature)
+signal mine_step_requested(creature: Creature)
 signal build_step_requested(creature: Creature, step_index: int)
 signal blocker_redirected(blocker: Creature, creature: Creature)
 signal bomb_detonated(creature: Creature)
@@ -13,6 +14,7 @@ enum State {
 	WALKING,
 	FALLING,
 	DIGGING,
+	MINING,
 	BUILDING,
 	BLOCKING,
 	BOMBING,
@@ -25,6 +27,9 @@ enum State {
 @export_range(100.0, 4000.0, 10.0, "or_greater") var maximum_fall_speed: float = 1500.0
 @export_range(0.05, 1.0, 0.01, "or_greater") var dig_step_interval: float = 0.14
 @export_range(10.0, 300.0, 1.0, "or_greater") var dig_descent_speed: float = 72.0
+@export_range(0.05, 1.0, 0.01, "or_greater") var mine_step_interval: float = 0.14
+@export_range(10.0, 300.0, 1.0, "or_greater") var mine_horizontal_speed: float = 64.0
+@export_range(10.0, 300.0, 1.0, "or_greater") var mine_descent_speed: float = 52.0
 @export_range(0.05, 1.0, 0.01, "or_greater") var build_step_interval: float = 0.14
 @export_range(1, 32, 1, "or_greater") var build_step_count: int = 12
 @export_range(0.5, 30.0, 0.1, "or_greater") var block_duration: float = 5.5
@@ -34,6 +39,7 @@ enum State {
 var direction: int = 1
 var current_state: State = State.FALLING
 var _dig_step_time_remaining: float = 0.0
+var _mine_step_time_remaining: float = 0.0
 var _build_step_time_remaining: float = 0.0
 var _build_step_index: int = 0
 var _block_time_remaining: float = 0.0
@@ -42,6 +48,7 @@ var _bomb_time_remaining: float = 0.0
 @onready var visual_root: Node2D = $VisualRoot
 @onready var selection_highlight: Polygon2D = $SelectionHighlight
 @onready var dig_effect: Polygon2D = $DigEffect
+@onready var mine_effect: Polygon2D = $VisualRoot/MineEffect
 @onready var build_effect: Polygon2D = $VisualRoot/BuildEffect
 @onready var block_effect: Polygon2D = $VisualRoot/BlockEffect
 @onready var blocker_area: Area2D = $BlockerArea
@@ -70,6 +77,17 @@ func _physics_process(delta: float) -> void:
 		if _dig_step_time_remaining <= 0.0:
 			_dig_step_time_remaining += dig_step_interval
 			dig_step_requested.emit(self)
+		return
+	if current_state == State.MINING:
+		velocity = Vector2(
+			mine_horizontal_speed * float(direction),
+			mine_descent_speed
+		)
+		move_and_slide()
+		_mine_step_time_remaining -= delta
+		if _mine_step_time_remaining <= 0.0:
+			_mine_step_time_remaining += mine_step_interval
+			mine_step_requested.emit(self)
 		return
 	if current_state == State.BUILDING:
 		velocity = Vector2.ZERO
@@ -123,6 +141,23 @@ func finish_dig() -> void:
 	if current_state != State.DIGGING:
 		return
 	dig_effect.visible = false
+	velocity = Vector2.ZERO
+	_transition_to(State.WALKING)
+
+
+func begin_mine() -> bool:
+	if current_state != State.WALKING:
+		return false
+	_mine_step_time_remaining = mine_step_interval
+	mine_effect.visible = true
+	_transition_to(State.MINING)
+	return true
+
+
+func finish_mine() -> void:
+	if current_state != State.MINING:
+		return
+	mine_effect.visible = false
 	velocity = Vector2.ZERO
 	_transition_to(State.WALKING)
 
@@ -249,6 +284,7 @@ func _transition_to(next_state: State) -> void:
 func _finish_lifecycle() -> void:
 	set_target_highlighted(false)
 	dig_effect.visible = false
+	mine_effect.visible = false
 	build_effect.visible = false
 	block_effect.visible = false
 	bomb_effect.visible = false

@@ -42,7 +42,7 @@ func _build_level_buttons() -> void:
 			continue
 		var button := Button.new()
 		button.name = "Level%dButton" % entry.number
-		button.custom_minimum_size = Vector2(0.0, 104.0)
+		button.custom_minimum_size = Vector2(0.0, 90.0)
 		button.text = "%02d  %s\n%s\n%s" % [
 			entry.number,
 			entry.title,

@@ -34,6 +34,13 @@ polygon = PackedVector2Array(-22, 7, -14, -4, 0, -9, 15, -4, 23, 7, 12, 12, -12,
 
 [node name="VisualRoot" type="Node2D" parent="."]
 
+[node name="MineEffect" type="Polygon2D" parent="VisualRoot"]
+visible = false
+position = Vector2(22, 13)
+rotation = 0.785398
+color = Color(0.72, 0.76, 0.8, 0.98)
+polygon = PackedVector2Array(-4, -22, 4, -22, 4, 10, 13, 10, 13, 17, -13, 17, -13, 10, -4, 10)
+
 [node name="BuildEffect" type="Polygon2D" parent="VisualRoot"]
 visible = false
 position = Vector2(21, 4)

@@ -9,7 +9,7 @@ script = ExtResource("1_hud")
 [node name="Panel" type="PanelContainer" parent="."]
 offset_left = 16.0
 offset_top = 16.0
-offset_right = 1260.0
+offset_right = 1510.0
 offset_bottom = 244.0
 
 [node name="Margin" type="MarginContainer" parent="Panel"]
@@ -73,6 +73,17 @@ text = "DIG"
 unique_name_in_owner = true
 layout_mode = 2
 text = "DIG remaining: 10"
+
+[node name="MineButton" type="Button" parent="Panel/Margin/Content/Abilities"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+text = "MINE"
+
+[node name="MineInventoryLabel" type="Label" parent="Panel/Margin/Content/Abilities"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "MINE remaining: 0"
 
 [node name="BuildButton" type="Button" parent="Panel/Margin/Content/Abilities"]
 unique_name_in_owner = true

@@ -6,6 +6,11 @@ const ChunkedMaskTerrainScript = preload("res://scripts/terrain/chunked_mask_ter
 const DIG_PROBE_OFFSET := Vector2(0.0, 24.0)
 const DIG_CENTER_OFFSET := Vector2(0.0, 30.0)
 const DIG_RADIUS := 34.0
+const MINE_PROBE_FORWARD := 22.0
+const MINE_PROBE_DOWN := 24.0
+const MINE_CENTER_FORWARD := 32.0
+const MINE_CENTER_DOWN := 30.0
+const MINE_RADIUS := 38.0
 const BUILD_FEET_OFFSET := Vector2(0.0, 20.0)
 const BUILD_START_OFFSET := 12.0
 const BUILD_STEP_ADVANCE := 28.0
@@ -51,6 +56,7 @@ func _ready() -> void:
 
 	level_controller.begin_level(level_definition)
 	ability_controller.set_dig_target_validator(_can_creature_dig)
+	ability_controller.set_mine_target_validator(_can_creature_mine)
 	ability_controller.set_build_target_validator(_can_creature_build)
 	ability_controller.set_bomb_target_validator(_can_creature_bomb)
 	ability_controller.begin_level(level_definition)
@@ -60,6 +66,7 @@ func _ready() -> void:
 
 func _on_creature_spawned(creature: Creature, spawned_count: int) -> void:
 	creature.dig_step_requested.connect(_on_creature_dig_step)
+	creature.mine_step_requested.connect(_on_creature_mine_step)
 	creature.build_step_requested.connect(_on_creature_build_step)
 	creature.bomb_detonated.connect(_on_creature_bomb_detonated)
 	level_controller.register_spawn(spawned_count)
@@ -81,15 +88,23 @@ func _on_ability_assigned(
 	creature: Creature,
 	ability: AbilityAssignmentControllerScript.Ability
 ) -> void:
-	if ability != AbilityAssignmentControllerScript.Ability.DIG:
-		return
-	if _excavate_for_creature(creature) <= 0:
-		creature.finish_dig()
+	match ability:
+		AbilityAssignmentControllerScript.Ability.DIG:
+			if _excavate_for_creature(creature) <= 0:
+				creature.finish_dig()
+		AbilityAssignmentControllerScript.Ability.MINE:
+			if _excavate_for_miner(creature) <= 0:
+				creature.finish_mine()
 
 
 func _on_creature_dig_step(creature: Creature) -> void:
 	if _excavate_for_creature(creature) <= 0:
 		creature.finish_dig()
+
+
+func _on_creature_mine_step(creature: Creature) -> void:
+	if _excavate_for_miner(creature) <= 0:
+		creature.finish_mine()
 
 
 func _on_creature_build_step(creature: Creature, step_index: int) -> void:
@@ -113,8 +128,28 @@ func _excavate_for_creature(creature: Creature) -> int:
 	)
 
 
+func _excavate_for_miner(creature: Creature) -> int:
+	var center_offset := Vector2(
+		float(creature.direction) * MINE_CENTER_FORWARD,
+		MINE_CENTER_DOWN
+	)
+	return diggable_terrain.excavate_circle(
+		diggable_terrain.to_local(creature.global_position + center_offset),
+		MINE_RADIUS
+	)
+
+
 func _can_creature_dig(creature: Creature) -> bool:
 	var probe_position := diggable_terrain.to_local(creature.global_position + DIG_PROBE_OFFSET)
+	return diggable_terrain.get_material_at(probe_position) != 0
+
+
+func _can_creature_mine(creature: Creature) -> bool:
+	var probe_offset := Vector2(
+		float(creature.direction) * MINE_PROBE_FORWARD,
+		MINE_PROBE_DOWN
+	)
+	var probe_position := diggable_terrain.to_local(creature.global_position + probe_offset)
 	return diggable_terrain.get_material_at(probe_position) != 0
 
 
