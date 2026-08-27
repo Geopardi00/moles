@@ -148,6 +148,12 @@ Add BUILD as a second limited-use ability and prove that the assignment foundati
 
 Status: completed on 2026-08-27. The `Bridge the Gap` test level provides 2 BUILD uses and requires all 5 creatures to cross a gap. Automated coverage verifies paused assignment and inventory/HUD updates, frozen construction while paused, facing-dependent terrain placement, one-BUILD completion with all creatures rescued, outcome locking, and full terrain/inventory restart restoration. Manual visual and gameplay testing has been accepted.
 
+### Milestone 7 — Combined DIG + BUILD Puzzle (complete)
+
+Prove that the two implemented abilities compose in one authored solution rather than functioning only in isolated demonstrations. The population must first DIG through a sealed upper shelf, then BUILD across a gap on the lower route; neither intervention alone reaches the exit.
+
+Status: completed on 2026-08-27. The `Down and Across` level has 5 creatures, requires all 5 rescues, and provides exactly 1 DIG plus 1 BUILD. Automated coverage verifies independent inventory/HUD updates, persistent removal and addition in separate terrain masks, frozen BUILD progression while paused, the required two-action completion route, outcome locking, and restart restoration of both terrains and inventories. Manual visual and gameplay testing has been accepted.
+
 ## 8. Decisions already made
 
 - Godot 4.6, GDScript, and 2D
@@ -287,3 +293,4 @@ MovementTest (Node2D)
 - 2026-08-27: Implemented the `First Dig` puzzle. One DIG opens the lower exit route for all 10 creatures, and automated coverage verifies completion plus full terrain/inventory restart restoration.
 - 2026-08-27: Accepted the `First Dig` manual gameplay test and completed Milestone 5.
 - 2026-08-27: Implemented and accepted Milestone 6's BUILD slice and `Bridge the Gap` level. One facing-dependent BUILD creates a persistent walkable bridge for all 5 creatures; automated and manual pause, inventory, completion, and restart verification passes.
+- 2026-08-27: Implemented and accepted Milestone 7's `Down and Across` puzzle, requiring exactly one DIG followed by one BUILD. Automated and manual verification proves both terrain mutations compose, all 5 creatures are rescued, and restart restores both systems.
