@@ -178,6 +178,28 @@ Add MINE as a continuous moving excavation ability distinct from vertical DIG. A
 
 Status: completed on 2026-08-27. The `Downward Passage` level provides exactly 1 MINE for 6 creatures and requires all 6 rescues. One diagonal tunnel through a thick upper shelf lets the entire population reach the lower exit route. Automated coverage verifies facing-aware targeting, paused assignment and initial excavation, frozen movement and subsequent pulses while paused, independent five-ability inventory/HUD state, continuous forward/down removal without excavation behind the miner, persistent tunnel traversal by all 6 creatures, outcome locking, and full restart restoration. Manual visual and gameplay testing has been accepted.
 
+### Milestone 12 — Results and Progression (planned)
+
+Add explicit per-level Bronze, Silver, and Gold rescue thresholds. Each threshold is authored as a rescued-creature count in the level definition rather than derived from a global percentage or shared formula.
+
+Confirmed medal rules:
+
+- Bronze is the minimum rescue count and therefore the level's success threshold.
+- Silver and Gold are progressively higher rescue counts: `0 <= Bronze <= Silver <= Gold <= total creatures`.
+- A completed level awards the highest threshold reached from its final saved count. Medal evaluation waits until every creature has resolved, preserving the existing completion rule.
+- Finishing below Bronze is a failure and awards no medal.
+- Thresholds measure rescued creatures only. Ability usage, completion time, and optional objectives do not affect the Milestone 12 medal.
+- Levels with unavoidable losses, such as `Breaching Charge`, may set Gold below the total population.
+
+Implementation scope:
+
+- Extend `LevelDefinition` with explicit Bronze, Silver, and Gold rescue-count fields; Bronze replaces the current count/percentage requirement as the authoritative success threshold.
+- Migrate every catalog level to valid authored thresholds without changing its currently accepted pass/fail route.
+- Add reusable medal evaluation to the level result flow and present the earned tier on the outcome overlay.
+- Cover no-medal, Bronze, Silver, and Gold outcomes, invalid threshold ordering, outcome locking, and restart behavior with an automated Milestone 12 smoke test and manual visual acceptance.
+
+Excluded: persistent best medals, save-data/versioning, locked-level progression, ability-efficiency medals, timers, and final medal artwork. Those can follow after the per-level evaluation and presentation rules are proven.
+
 ## 8. Decisions already made
 
 - Godot 4.6, GDScript, and 2D
@@ -191,7 +213,7 @@ Status: completed on 2026-08-27. The `Downward Passage` level provides exactly 1
 
 ## 9. Open design questions
 
-- Exact Bronze/Silver/Gold threshold rules and whether medals have additional constraints
+- Whether later milestones should add optional medal constraints beyond rescued-creature counts
 - Final core ability roster and per-ability targeting modes
 - Safe-fall threshold and fall-protection abilities
 - Maximum supported creature population and target platforms/performance budgets
@@ -223,6 +245,7 @@ Status: completed on 2026-08-27. The `Downward Passage` level provides exactly 1
 - Milestone 0 uses scene-local simulation control. A global/autoload service is deferred until multiple level scenes demonstrate that it is necessary.
 - Population, spawn settings, and rescue requirements live in a per-level `LevelDefinition` resource.
 - Rescue requirements may be authored as an exact count or a percentage; percentage requirements round upward to a whole creature.
+- Beginning with Milestone 12, catalog levels author explicit Bronze, Silver, and Gold rescued-creature counts. Bronze is the authoritative success requirement; the previous count/percentage requirement remains only until those levels are migrated.
 - A reusable `LevelController` owns progress and outcome rules. Level scenes connect world events to it, while the HUD only presents its state and requests actions.
 - A reusable `GameplayLevel` coordinator now binds population, outcomes, abilities, destructible terrain, HUD, and restart behavior for both the movement lab and authored puzzle scenes.
 - The project entry point is a level-selection scene backed by a data-driven catalog resource. Gameplay levels own a configurable route back to this selector; returning from any simulation state clears pause locking, unpauses, and restores 1× speed before the scene change.
@@ -326,3 +349,4 @@ MovementTest (Node2D)
 - 2026-08-27: Implemented and accepted Milestone 9's BLOCK ability and `Hold the Line` puzzle. A temporary blocker redirects four followers through an explicit trigger area without physical creature collision; automated and manual assignment, pause, 4/5 outcome, and restart verification passes.
 - 2026-08-27: Implemented and accepted Milestone 10's BOMB ability and `Breaching Charge` puzzle. A paused-aware directional charge sacrifices its assigned mole and opens a full-depth persistent wall breach for four followers; automated and manual 4/5 outcome and restart verification passes.
 - 2026-08-27: Implemented and accepted Milestone 11's MINE ability and `Downward Passage` puzzle. One facing-dependent continuous diagonal excavation creates a persistent tunnel used by all 6 creatures; automated and manual targeting, pause, completion, and restart verification passes.
+- 2026-09-01: Defined Milestone 12 around explicit per-level Bronze, Silver, and Gold rescue-count thresholds. Bronze becomes the success requirement; persistence, unlocking, and non-rescue medal constraints remain deferred.
