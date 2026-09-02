@@ -32,6 +32,7 @@ signal level_select_requested
 @onready var bomb_inventory_label: Label = %BombInventoryLabel
 @onready var result_overlay: Control = %ResultOverlay
 @onready var result_title: Label = %ResultTitle
+@onready var result_medal: Label = %ResultMedal
 @onready var result_details: Label = %ResultDetails
 @onready var result_restart_button: Button = %ResultRestartButton
 @onready var result_level_select_button: Button = %ResultLevelSelectButton
@@ -91,10 +92,10 @@ func bind_level(controller: LevelController) -> void:
 
 	var definition := _level_controller.definition
 	level_name_label.text = definition.display_name
-	goal_label.text = "Goal: rescue %d / %d (%d%%)" % [
-		definition.get_required_rescue_count(),
-		definition.total_creatures,
-		int(roundf(definition.get_effective_rescue_percentage())),
+	goal_label.text = "Medals: Bronze %d | Silver %d | Gold %d" % [
+		definition.bronze_rescue_count,
+		definition.silver_rescue_count,
+		definition.gold_rescue_count,
 	]
 	_on_progress_changed(
 		_level_controller.spawned_count,
@@ -142,16 +143,36 @@ func _on_level_status_changed(status: LevelController.Status) -> void:
 
 	if status == LevelController.Status.COMPLETED:
 		result_title.text = "LEVEL COMPLETE"
+		result_medal.text = "%s MEDAL" % LevelDefinition.get_medal_display_name(
+			_level_controller.earned_medal
+		)
+		result_medal.modulate = _get_medal_color(_level_controller.earned_medal)
 		result_details.text = "Saved %d of %d creatures." % [
 			_level_controller.saved_count,
 			_level_controller.definition.total_creatures,
 		]
 	elif status == LevelController.Status.FAILED:
 		result_title.text = "LEVEL FAILED"
-		result_details.text = "Saved %d. The level requires %d." % [
+		result_medal.text = LevelDefinition.get_medal_display_name(
+			LevelDefinition.MedalTier.NONE
+		)
+		result_medal.modulate = Color(0.68, 0.7, 0.72)
+		result_details.text = "Saved %d. Bronze requires %d." % [
 			_level_controller.saved_count,
 			_level_controller.get_required_rescue_count(),
 		]
+
+
+func _get_medal_color(medal: LevelDefinition.MedalTier) -> Color:
+	match medal:
+		LevelDefinition.MedalTier.BRONZE:
+			return Color(0.8, 0.5, 0.28)
+		LevelDefinition.MedalTier.SILVER:
+			return Color(0.78, 0.82, 0.88)
+		LevelDefinition.MedalTier.GOLD:
+			return Color(0.95, 0.78, 0.22)
+		_:
+			return Color.WHITE
 
 
 func _on_pause_changed(is_paused: bool) -> void:

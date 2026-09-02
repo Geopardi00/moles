@@ -33,7 +33,7 @@ func _run_test() -> void:
 	if level_controller.definition.total_creatures != 30:
 		failures.append("LevelDefinition should configure 30 creatures.")
 	if level_controller.get_required_rescue_count() != 24:
-		failures.append("The 80%% requirement should resolve to 24 of 30 creatures.")
+		failures.append("The Bronze requirement should be 24 of 30 creatures.")
 
 	simulation_controller.set_speed(4.0)
 	await get_tree().create_timer(REAL_TEST_DURATION_SECONDS, true, false, true).timeout
@@ -83,8 +83,9 @@ func _run_test() -> void:
 	# Test the controller's early-failure rule without needing a second terrain scene.
 	var failed_definition := load("res://resources/levels/movement_test_level.tres").duplicate()
 	failed_definition.total_creatures = 10
-	failed_definition.rescue_requirement_mode = 0
-	failed_definition.required_rescue_count = 8
+	failed_definition.bronze_rescue_count = 8
+	failed_definition.silver_rescue_count = 9
+	failed_definition.gold_rescue_count = 10
 	var failure_controller := LevelController.new()
 	add_child(failure_controller)
 	failure_controller.begin_level(failed_definition)

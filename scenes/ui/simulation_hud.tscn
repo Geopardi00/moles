@@ -32,7 +32,7 @@ text = "MOVEMENT LAB"
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.61, 0.88, 0.74, 1)
-text = "Goal: rescue 24 / 30 (80%)"
+text = "Medals: Bronze 24 | Silver 27 | Gold 30"
 
 [node name="Counts" type="HBoxContainer" parent="Panel/Margin/Content"]
 layout_mode = 2
@@ -189,7 +189,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Panel" type="PanelContainer" parent="ResultOverlay/Center"]
-custom_minimum_size = Vector2(520, 260)
+custom_minimum_size = Vector2(520, 310)
 layout_mode = 2
 
 [node name="Margin" type="MarginContainer" parent="ResultOverlay/Center/Panel"]
@@ -210,6 +210,14 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.61, 0.88, 0.74, 1)
 theme_override_font_sizes/font_size = 34
 text = "LEVEL COMPLETE"
+horizontal_alignment = 1
+
+[node name="ResultMedal" type="Label" parent="ResultOverlay/Center/Panel/Margin/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.78, 0.22, 1)
+theme_override_font_sizes/font_size = 28
+text = "GOLD MEDAL"
 horizontal_alignment = 1
 
 [node name="ResultDetails" type="Label" parent="ResultOverlay/Center/Panel/Margin/Content"]

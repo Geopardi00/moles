@@ -27,11 +27,19 @@ var spawned_count: int = 0
 var saved_count: int = 0
 var lost_count: int = 0
 var spawning_finished: bool = false
+var earned_medal: LevelDefinition.MedalTier = LevelDefinition.MedalTier.NONE
 
 
 func begin_level(level_definition: LevelDefinition) -> void:
 	if level_definition == null:
 		push_error("LevelController requires a LevelDefinition.")
+		return
+	var configuration_errors := level_definition.get_medal_configuration_errors()
+	if not configuration_errors.is_empty():
+		push_error(
+			"LevelController received invalid medal thresholds: %s"
+			% "; ".join(configuration_errors)
+		)
 		return
 
 	definition = level_definition
@@ -39,6 +47,7 @@ func begin_level(level_definition: LevelDefinition) -> void:
 	saved_count = 0
 	lost_count = 0
 	spawning_finished = false
+	earned_medal = LevelDefinition.MedalTier.NONE
 	status = Status.RUNNING
 	status_changed.emit(status)
 	_emit_progress()
@@ -96,7 +105,12 @@ func _evaluate_outcome() -> void:
 		and saved_count + lost_count >= definition.total_creatures
 	)
 	if every_creature_resolved:
-		_transition_to(Status.COMPLETED if saved_count >= required else Status.FAILED)
+		earned_medal = definition.get_medal_for_saved_count(saved_count)
+		_transition_to(
+			Status.COMPLETED
+			if earned_medal != LevelDefinition.MedalTier.NONE
+			else Status.FAILED
+		)
 
 
 func _transition_to(next_status: Status) -> void:

@@ -178,7 +178,7 @@ Add MINE as a continuous moving excavation ability distinct from vertical DIG. A
 
 Status: completed on 2026-08-27. The `Downward Passage` level provides exactly 1 MINE for 6 creatures and requires all 6 rescues. One diagonal tunnel through a thick upper shelf lets the entire population reach the lower exit route. Automated coverage verifies facing-aware targeting, paused assignment and initial excavation, frozen movement and subsequent pulses while paused, independent five-ability inventory/HUD state, continuous forward/down removal without excavation behind the miner, persistent tunnel traversal by all 6 creatures, outcome locking, and full restart restoration. Manual visual and gameplay testing has been accepted.
 
-### Milestone 12 — Results and Progression (planned)
+### Milestone 12 — Results and Progression (complete)
 
 Add explicit per-level Bronze, Silver, and Gold rescue thresholds. Each threshold is authored as a rescued-creature count in the level definition rather than derived from a global percentage or shared formula.
 
@@ -199,6 +199,8 @@ Implementation scope:
 - Cover no-medal, Bronze, Silver, and Gold outcomes, invalid threshold ordering, outcome locking, and restart behavior with an automated Milestone 12 smoke test and manual visual acceptance.
 
 Excluded: persistent best medals, save-data/versioning, locked-level progression, ability-efficiency medals, timers, and final medal artwork. Those can follow after the per-level evaluation and presentation rules are proven.
+
+Status: completed on 2026-09-02. `LevelDefinition` now owns validated explicit rescue-count thresholds and medal evaluation; Bronze drives completion and early failure. All existing level resources have been migrated without changing their accepted success routes, and the HUD presents the three targets plus the final earned tier. The complete Milestone 0–12 automated smoke suite passes. Rendered visual acceptance at the configured 1152×648 window size confirms that the updated goal row and result overlay remain readable, centered, and unclipped.
 
 ## 8. Decisions already made
 
@@ -244,8 +246,7 @@ Excluded: persistent best medals, save-data/versioning, locked-level progression
 - Camera travel is measured using real elapsed time so camera speed does not change with simulation speed.
 - Milestone 0 uses scene-local simulation control. A global/autoload service is deferred until multiple level scenes demonstrate that it is necessary.
 - Population, spawn settings, and rescue requirements live in a per-level `LevelDefinition` resource.
-- Rescue requirements may be authored as an exact count or a percentage; percentage requirements round upward to a whole creature.
-- Beginning with Milestone 12, catalog levels author explicit Bronze, Silver, and Gold rescued-creature counts. Bronze is the authoritative success requirement; the previous count/percentage requirement remains only until those levels are migrated.
+- Catalog levels author explicit Bronze, Silver, and Gold rescued-creature counts in `LevelDefinition`. Bronze is the authoritative success requirement; percentage-derived requirements are no longer used.
 - A reusable `LevelController` owns progress and outcome rules. Level scenes connect world events to it, while the HUD only presents its state and requests actions.
 - A reusable `GameplayLevel` coordinator now binds population, outcomes, abilities, destructible terrain, HUD, and restart behavior for both the movement lab and authored puzzle scenes.
 - The project entry point is a level-selection scene backed by a data-driven catalog resource. Gameplay levels own a configurable route back to this selector; returning from any simulation state clears pause locking, unpauses, and restores 1× speed before the scene change.
@@ -350,3 +351,4 @@ MovementTest (Node2D)
 - 2026-08-27: Implemented and accepted Milestone 10's BOMB ability and `Breaching Charge` puzzle. A paused-aware directional charge sacrifices its assigned mole and opens a full-depth persistent wall breach for four followers; automated and manual 4/5 outcome and restart verification passes.
 - 2026-08-27: Implemented and accepted Milestone 11's MINE ability and `Downward Passage` puzzle. One facing-dependent continuous diagonal excavation creates a persistent tunnel used by all 6 creatures; automated and manual targeting, pause, completion, and restart verification passes.
 - 2026-09-01: Defined Milestone 12 around explicit per-level Bronze, Silver, and Gold rescue-count thresholds. Bronze becomes the success requirement; persistence, unlocking, and non-rescue medal constraints remain deferred.
+- 2026-09-02: Implemented and accepted Milestone 12 medal configuration, validation, outcome evaluation, HUD presentation, and resource migration. The complete Milestone 0–12 smoke suite passes, and rendered visual testing confirms the HUD and result overlay remain readable and unclipped.
