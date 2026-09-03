@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_definition")
+level_id = &"breaching_charge"
 display_name = "Breaching Charge"
 total_creatures = 5
 spawn_interval = 1.8

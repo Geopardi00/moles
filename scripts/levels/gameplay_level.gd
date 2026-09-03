@@ -193,6 +193,9 @@ func _get_bomb_center(creature: Creature) -> Vector2:
 
 
 func _on_level_completed(_saved: int, _total: int) -> void:
+	var progress_store := get_node_or_null("/root/ProgressStore")
+	if progress_store != null:
+		progress_store.record_active_medal(level_definition.level_id, level_controller.earned_medal)
 	_lock_finished_level()
 
 

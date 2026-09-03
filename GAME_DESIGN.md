@@ -85,7 +85,7 @@ A hybrid world is expected:
 - grass, roots, and stones are decoration;
 - backgrounds use normal artwork.
 
-The final terrain representation is deliberately undecided. A fine-grid/TileMapLayer approach and a custom mask/grid with chunked collision rebuilding must be compared in an isolated prototype before adoption.
+Milestone 3 selected a custom 8 px mask/grid with chunk-local collision rebuilding after comparing it against a fine-grid/TileMapLayer baseline. Visual rendering remains independent from the internal terrain representation.
 
 ## 7. Current development milestones
 
@@ -202,6 +202,29 @@ Excluded: persistent best medals, save-data/versioning, locked-level progression
 
 Status: completed on 2026-09-02. `LevelDefinition` now owns validated explicit rescue-count thresholds and medal evaluation; Bronze drives completion and early failure. All existing level resources have been migrated without changing their accepted success routes, and the HUD presents the three targets plus the final earned tier. The complete Milestone 0–12 automated smoke suite passes. Rendered visual acceptance at the configured 1152×648 window size confirms that the updated goal row and result overlay remain readable, centered, and unclipped.
 
+### Milestone 13 — Persistent Medal Progression (complete)
+
+Persist the best medal earned for each catalog level and use that progress to unlock the campaign sequentially. A fresh profile begins with only Level 1 available; earning Bronze or better unlocks the immediately following catalog entry.
+
+Confirmed progression rules:
+
+- Each `LevelDefinition` owns a stable, non-empty level ID used as the save key.
+- Only levels launched through the player-facing catalog may write progress. Direct editor and smoke-test scene launches remain isolated from player saves.
+- The saved result is monotonic: Silver replaces Bronze and Gold replaces Bronze or Silver, while failures and lower-ranked replays never downgrade the best medal.
+- Level 1 is always unlocked. Every later entry is unlocked only when the immediately preceding catalog level has a saved Bronze, Silver, or Gold medal.
+- Progress uses a single versioned local profile. Missing or malformed data falls back to fresh progress; a save from a newer unsupported schema is never overwritten.
+
+Implementation scope:
+
+- Add stable IDs to all six catalog level definitions and let catalog entries reference those definitions rather than duplicate their titles.
+- Add an autoloaded progress store backed by `user://progress.cfg`, with schema version 1 and per-level best-medal values.
+- Record matching active-level completions, expose progress changes, and present best-medal and lock requirements on the level-selection buttons.
+- Cover fresh profiles, sequential unlocks, persistence reloads, medal upgrades/non-downgrades, failed and mismatched runs, invalid data, newer schemas, and direct-scene isolation with automated smoke tests.
+
+Excluded: multiple profiles, cloud synchronization, a user-facing progress reset, a direct Next Level button, optional medal constraints, and final medal artwork.
+
+Status: completed on 2026-09-03. The versioned progress store, active-level write gate, stable catalog identities, linear Bronze unlocks, and best-medal menu presentation are implemented. The complete Milestone 0–13 smoke suite passes. Manual visual acceptance at 1920×1080 and 1152×648 confirms fresh, locked, completed, and newly unlocked menu states are centered, readable, and unclipped.
+
 ## 8. Decisions already made
 
 - Godot 4.6, GDScript, and 2D
@@ -250,6 +273,7 @@ Status: completed on 2026-09-02. `LevelDefinition` now owns validated explicit r
 - A reusable `LevelController` owns progress and outcome rules. Level scenes connect world events to it, while the HUD only presents its state and requests actions.
 - A reusable `GameplayLevel` coordinator now binds population, outcomes, abilities, destructible terrain, HUD, and restart behavior for both the movement lab and authored puzzle scenes.
 - The project entry point is a level-selection scene backed by a data-driven catalog resource. Gameplay levels own a configurable route back to this selector; returning from any simulation state clears pause locking, unpauses, and restores 1× speed before the scene change.
+- Catalog levels use stable IDs for versioned local medal persistence. The selection screen marks a launched level as active, matching completions save only medal improvements, and catalog order derives linear Bronze-based unlocking without coupling the progress store to scene paths.
 - Restart reloads the current level scene and restores an unpaused 1× simulation with fresh counters.
 - The gameplay design resolution is 1920×1080, with `Camera2D.zoom` remaining at `Vector2(1, 1)` for the baseline view. World geometry, creature tuning, triggers, and camera bounds are authored directly for that coordinate system rather than using a scaled physics parent.
 
@@ -352,3 +376,4 @@ MovementTest (Node2D)
 - 2026-08-27: Implemented and accepted Milestone 11's MINE ability and `Downward Passage` puzzle. One facing-dependent continuous diagonal excavation creates a persistent tunnel used by all 6 creatures; automated and manual targeting, pause, completion, and restart verification passes.
 - 2026-09-01: Defined Milestone 12 around explicit per-level Bronze, Silver, and Gold rescue-count thresholds. Bronze becomes the success requirement; persistence, unlocking, and non-rescue medal constraints remain deferred.
 - 2026-09-02: Implemented and accepted Milestone 12 medal configuration, validation, outcome evaluation, HUD presentation, and resource migration. The complete Milestone 0–12 smoke suite passes, and rendered visual testing confirms the HUD and result overlay remain readable and unclipped.
+- 2026-09-03: Implemented and accepted Milestone 13 persistent medal progression. Stable level IDs, a versioned local progress store, active-level write isolation, monotonic best medals, linear Bronze unlocks, and progression-aware catalog presentation pass the complete Milestone 0–13 smoke suite and manual visual acceptance at both target window sizes.

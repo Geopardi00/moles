@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_definition")
+level_id = &"first_dig"
 display_name = "First Dig"
 total_creatures = 10
 spawn_interval = 0.35

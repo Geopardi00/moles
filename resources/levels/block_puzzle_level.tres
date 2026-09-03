@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_definition")
+level_id = &"hold_the_line"
 display_name = "Hold the Line"
 total_creatures = 5
 spawn_interval = 1.0

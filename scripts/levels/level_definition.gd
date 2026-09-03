@@ -11,6 +11,7 @@ enum MedalTier {
 }
 
 @export_category("Identity")
+@export var level_id: StringName
 @export var display_name: String = "Untitled Level"
 
 @export_category("Population")

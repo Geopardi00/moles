@@ -1,6 +1,7 @@
 extends Node
 
 const LevelSelectScript = preload("res://scripts/ui/level_select.gd")
+const TEST_PROGRESS_PATH := "user://tests/milestone_8_progress.cfg"
 
 
 func _ready() -> void:
@@ -17,9 +18,13 @@ func _ready() -> void:
 
 func _run_test() -> void:
 	var failures: Array[String] = []
+	var progress_store := get_node("/root/ProgressStore")
+	_remove_test_progress_file()
+	progress_store.load_progress(TEST_PROGRESS_PATH)
 	var packed_scene := load("res://scenes/ui/level_select.tscn") as PackedScene
 	if packed_scene == null:
 		push_error("MILESTONE_8_SMOKE_TEST: Could not load the level-selection scene.")
+		_restore_progress_store(progress_store)
 		get_tree().quit(1)
 		return
 
@@ -47,9 +52,26 @@ func _run_test() -> void:
 			failures.append("The fifth catalog entry was not rendered in order.")
 		if "Downward Passage" not in menu.level_buttons[5].text:
 			failures.append("The sixth catalog entry was not rendered in order.")
+		if menu.level_buttons[0].disabled:
+			failures.append("The first level should be unlocked for a fresh profile.")
+		for locked_index in range(1, menu.level_buttons.size()):
+			if not menu.level_buttons[locked_index].disabled:
+				failures.append("Only the first level should be unlocked for a fresh profile.")
 	for entry in menu.catalog.entries:
 		if entry == null or not ResourceLoader.exists(entry.scene_path, "PackedScene"):
-			failures.append("Catalog entry '%s' does not point to a loadable level scene." % entry.title)
+			failures.append("A catalog entry does not point to a loadable level scene.")
+
+	for completed_index in 2:
+		var completed_entry := menu.catalog.entries[completed_index] as LevelMenuEntry
+		progress_store.begin_level(completed_entry.level_definition.level_id)
+		progress_store.record_active_medal(
+			completed_entry.level_definition.level_id,
+			LevelDefinition.MedalTier.BRONZE
+		)
+	if menu.level_buttons[2].disabled:
+		failures.append("Completing the first two levels did not unlock the third level.")
+	if "Best: Bronze" not in menu.level_buttons[0].text:
+		failures.append("The menu did not render a saved Bronze medal.")
 
 	remove_child(menu)
 	get_tree().root.add_child(menu)
@@ -89,12 +111,25 @@ func _run_test() -> void:
 	await get_tree().process_frame
 
 	if failures.is_empty():
+		_restore_progress_store(progress_store)
 		print("MILESTONE_8_SMOKE_TEST: PASS - catalog launch and paused/outcome return navigation verified.")
 		get_tree().quit(0)
 		return
 	for failure in failures:
 		push_error("MILESTONE_8_SMOKE_TEST: %s" % failure)
+	_restore_progress_store(progress_store)
 	get_tree().quit(1)
+
+
+func _restore_progress_store(progress_store: Node) -> void:
+	progress_store.load_progress(progress_store.DEFAULT_STORAGE_PATH)
+	_remove_test_progress_file()
+
+
+func _remove_test_progress_file() -> void:
+	var absolute_path := ProjectSettings.globalize_path(TEST_PROGRESS_PATH)
+	if FileAccess.file_exists(TEST_PROGRESS_PATH):
+		DirAccess.remove_absolute(absolute_path)
 
 
 func _on_watchdog_timeout() -> void:

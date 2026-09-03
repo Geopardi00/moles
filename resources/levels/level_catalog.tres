@@ -1,12 +1,18 @@
-[gd_resource type="Resource" script_class="LevelCatalog" load_steps=9 format=3]
+[gd_resource type="Resource" script_class="LevelCatalog" load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/level_catalog.gd" id="1_catalog"]
 [ext_resource type="Script" path="res://scripts/ui/level_menu_entry.gd" id="2_entry"]
+[ext_resource type="Resource" path="res://resources/levels/dig_puzzle_level.tres" id="3_first_dig"]
+[ext_resource type="Resource" path="res://resources/levels/build_puzzle_level.tres" id="4_bridge_gap"]
+[ext_resource type="Resource" path="res://resources/levels/dig_build_puzzle_level.tres" id="5_down_across"]
+[ext_resource type="Resource" path="res://resources/levels/block_puzzle_level.tres" id="6_hold_line"]
+[ext_resource type="Resource" path="res://resources/levels/bomb_puzzle_level.tres" id="7_breaching_charge"]
+[ext_resource type="Resource" path="res://resources/levels/mine_puzzle_level.tres" id="8_downward_passage"]
 
 [sub_resource type="Resource" id="Level_first_dig"]
 script = ExtResource("2_entry")
 number = 1
-title = "First Dig"
+level_definition = ExtResource("3_first_dig")
 description = "Open the sealed upper route and rescue the colony below."
 ability_summary = "Abilities: DIG"
 scene_path = "res://scenes/levels/dig_puzzle.tscn"
@@ -14,7 +20,7 @@ scene_path = "res://scenes/levels/dig_puzzle.tscn"
 [sub_resource type="Resource" id="Level_bridge_gap"]
 script = ExtResource("2_entry")
 number = 2
-title = "Bridge the Gap"
+level_definition = ExtResource("4_bridge_gap")
 description = "Build a persistent crossing in the mole's facing direction."
 ability_summary = "Abilities: BUILD"
 scene_path = "res://scenes/levels/build_puzzle.tscn"
@@ -22,7 +28,7 @@ scene_path = "res://scenes/levels/build_puzzle.tscn"
 [sub_resource type="Resource" id="Level_down_across"]
 script = ExtResource("2_entry")
 number = 3
-title = "Down and Across"
+level_definition = ExtResource("5_down_across")
 description = "Dig to the lower route, then build across its final gap."
 ability_summary = "Abilities: DIG + BUILD"
 scene_path = "res://scenes/levels/dig_build_puzzle.tscn"
@@ -30,7 +36,7 @@ scene_path = "res://scenes/levels/dig_build_puzzle.tscn"
 [sub_resource type="Resource" id="Level_hold_line"]
 script = ExtResource("2_entry")
 number = 4
-title = "Hold the Line"
+level_definition = ExtResource("6_hold_line")
 description = "Turn the following moles away from danger without physical collision."
 ability_summary = "Abilities: BLOCK"
 scene_path = "res://scenes/levels/block_puzzle.tscn"
@@ -38,7 +44,7 @@ scene_path = "res://scenes/levels/block_puzzle.tscn"
 [sub_resource type="Resource" id="Level_breaching_charge"]
 script = ExtResource("2_entry")
 number = 5
-title = "Breaching Charge"
+level_definition = ExtResource("7_breaching_charge")
 description = "Sacrifice one mole to blast a persistent opening through the wall."
 ability_summary = "Abilities: BOMB"
 scene_path = "res://scenes/levels/bomb_puzzle.tscn"
@@ -46,7 +52,7 @@ scene_path = "res://scenes/levels/bomb_puzzle.tscn"
 [sub_resource type="Resource" id="Level_downward_passage"]
 script = ExtResource("2_entry")
 number = 6
-title = "Downward Passage"
+level_definition = ExtResource("8_downward_passage")
 description = "Carve a facing-dependent diagonal tunnel through the shelf."
 ability_summary = "Abilities: MINE"
 scene_path = "res://scenes/levels/mine_puzzle.tscn"

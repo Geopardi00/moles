@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_definition")
+level_id = &"bridge_the_gap"
 display_name = "Bridge the Gap"
 total_creatures = 5
 spawn_interval = 1.2

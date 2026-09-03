@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_definition")
+level_id = &"down_and_across"
 display_name = "Down and Across"
 total_creatures = 5
 spawn_interval = 2.0
