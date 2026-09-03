@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="TerrainMapDefinition" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/terrain/terrain_map_definition.gd" id="1_map"]
+[ext_resource type="Texture2D" path="res://art/Terrain/Maps/terrain_lab_material_map.png" id="2_texture"]
+[ext_resource type="Resource" path="res://resources/terrain/production_terrain_palette.tres" id="3_palette"]
+
+[resource]
+script = ExtResource("1_map")
+material_map = ExtResource("2_texture")
+palette = ExtResource("3_palette")

@@ -18,6 +18,7 @@ const BUILD_STEP_SIZE := Vector2(32.0, 16.0)
 const BOMB_PROBE_DISTANCES: Array[float] = [48.0, 72.0, 96.0]
 const BOMB_CENTER_DISTANCE := 72.0
 const BOMB_RADIUS := 105.0
+const BOMB_STRENGTH := 2
 
 @export var level_definition: LevelDefinition
 @export var diggable_terrain_path: NodePath = ^"World/Terrain/DiggableStartTerrain"
@@ -113,18 +114,21 @@ func _on_creature_build_step(creature: Creature, step_index: int) -> void:
 
 
 func _on_creature_bomb_detonated(creature: Creature) -> void:
-	diggable_terrain.excavate_circle(
+	diggable_terrain.excavate_circle_with_operation(
 		diggable_terrain.to_local(_get_bomb_center(creature)),
-		BOMB_RADIUS
+		BOMB_RADIUS,
+		ChunkedMaskTerrain.TerrainOperation.BOMB,
+		BOMB_STRENGTH
 	)
 	if creature.die():
 		level_controller.register_lost()
 
 
 func _excavate_for_creature(creature: Creature) -> int:
-	return diggable_terrain.excavate_circle(
+	return diggable_terrain.excavate_circle_with_operation(
 		diggable_terrain.to_local(creature.global_position + DIG_CENTER_OFFSET),
-		DIG_RADIUS
+		DIG_RADIUS,
+		ChunkedMaskTerrain.TerrainOperation.DIG
 	)
 
 
@@ -133,15 +137,19 @@ func _excavate_for_miner(creature: Creature) -> int:
 		float(creature.direction) * MINE_CENTER_FORWARD,
 		MINE_CENTER_DOWN
 	)
-	return diggable_terrain.excavate_circle(
+	return diggable_terrain.excavate_circle_with_operation(
 		diggable_terrain.to_local(creature.global_position + center_offset),
-		MINE_RADIUS
+		MINE_RADIUS,
+		ChunkedMaskTerrain.TerrainOperation.MINE
 	)
 
 
 func _can_creature_dig(creature: Creature) -> bool:
 	var probe_position := diggable_terrain.to_local(creature.global_position + DIG_PROBE_OFFSET)
-	return diggable_terrain.get_material_at(probe_position) != 0
+	return diggable_terrain.can_apply_operation_at(
+		probe_position,
+		ChunkedMaskTerrain.TerrainOperation.DIG
+	)
 
 
 func _can_creature_mine(creature: Creature) -> bool:
@@ -150,7 +158,10 @@ func _can_creature_mine(creature: Creature) -> bool:
 		MINE_PROBE_DOWN
 	)
 	var probe_position := diggable_terrain.to_local(creature.global_position + probe_offset)
-	return diggable_terrain.get_material_at(probe_position) != 0
+	return diggable_terrain.can_apply_operation_at(
+		probe_position,
+		ChunkedMaskTerrain.TerrainOperation.MINE
+	)
 
 
 func _can_creature_build(creature: Creature) -> bool:
@@ -164,7 +175,11 @@ func _can_creature_build(creature: Creature) -> bool:
 func _can_creature_bomb(creature: Creature) -> bool:
 	for distance in BOMB_PROBE_DISTANCES:
 		var world_probe := creature.global_position + Vector2(float(creature.direction) * distance, 0.0)
-		if diggable_terrain.get_material_at(diggable_terrain.to_local(world_probe)) != 0:
+		if diggable_terrain.can_apply_operation_at(
+			diggable_terrain.to_local(world_probe),
+			ChunkedMaskTerrain.TerrainOperation.BOMB,
+			BOMB_STRENGTH
+		):
 			return true
 	return false
 

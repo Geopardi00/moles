@@ -1,0 +1,57 @@
+[gd_resource type="Resource" script_class="TerrainMaterialPalette" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/terrain/terrain_material_palette.gd" id="1_palette"]
+[ext_resource type="Script" path="res://scripts/terrain/terrain_material_definition.gd" id="2_material"]
+[ext_resource type="Texture2D" path="res://art/Terrain/Runtime/terrain_dirt.png" id="3_dirt"]
+[ext_resource type="Texture2D" path="res://art/Terrain/Runtime/terrain_rock.png" id="4_rock"]
+[ext_resource type="Texture2D" path="res://art/Terrain/Runtime/terrain_bedrock.png" id="5_bedrock"]
+[ext_resource type="Texture2D" path="res://art/Terrain/Runtime/terrain_constructed.png" id="6_constructed"]
+
+[sub_resource type="Resource" id="Dirt"]
+script = ExtResource("2_material")
+material_id = 1
+display_name = "Dirt"
+source_color = Color(0.443137, 0.290196, 0.168627, 1)
+debug_color = Color(0.443137, 0.290196, 0.168627, 1)
+fill_texture = ExtResource("3_dirt")
+diggable = true
+mineable = true
+blast_resistance = 1
+
+[sub_resource type="Resource" id="Rock"]
+script = ExtResource("2_material")
+material_id = 2
+display_name = "Rock"
+source_color = Color(0.32549, 0.376471, 0.415686, 1)
+debug_color = Color(0.32549, 0.376471, 0.415686, 1)
+fill_texture = ExtResource("4_rock")
+diggable = false
+mineable = true
+blast_resistance = 2
+
+[sub_resource type="Resource" id="Bedrock"]
+script = ExtResource("2_material")
+material_id = 3
+display_name = "Bedrock"
+source_color = Color(0.145098, 0.164706, 0.192157, 1)
+debug_color = Color(0.145098, 0.164706, 0.192157, 1)
+fill_texture = ExtResource("5_bedrock")
+diggable = false
+mineable = false
+blast_resistance = 255
+indestructible = true
+
+[sub_resource type="Resource" id="Constructed"]
+script = ExtResource("2_material")
+material_id = 4
+display_name = "Constructed"
+source_color = Color(0.745098, 0.545098, 0.290196, 1)
+debug_color = Color(0.745098, 0.545098, 0.290196, 1)
+fill_texture = ExtResource("6_constructed")
+diggable = true
+mineable = true
+blast_resistance = 1
+
+[resource]
+script = ExtResource("1_palette")
+materials = Array[ExtResource("2_material")]([SubResource("Dirt"), SubResource("Rock"), SubResource("Bedrock"), SubResource("Constructed")])

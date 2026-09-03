@@ -1,0 +1,102 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/terrain/production_terrain_lab.gd" id="1_lab"]
+[ext_resource type="Script" path="res://scripts/terrain/chunked_mask_terrain.gd" id="2_terrain"]
+[ext_resource type="Resource" path="res://resources/terrain/terrain_lab_map.tres" id="3_map"]
+[ext_resource type="Script" path="res://scripts/camera/free_camera_2d.gd" id="4_camera"]
+[ext_resource type="Texture2D" path="res://art/Terrain/Runtime/terrain_exposed_rim.png" id="5_rim"]
+
+[sub_resource type="StyleBoxFlat" id="HudPanel"]
+bg_color = Color(0.035, 0.047, 0.055, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.28, 0.38, 0.4, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="ProductionTerrainLab" type="Node2D"]
+process_mode = 3
+script = ExtResource("1_lab")
+
+[node name="Background" type="Polygon2D" parent="."]
+z_index = -20
+color = Color(0.04, 0.055, 0.065, 1)
+polygon = PackedVector2Array(0, 0, 2840, 0, 2840, 1080, 0, 1080)
+
+[node name="Terrain" type="Node2D" parent="."]
+unique_name_in_owner = true
+position = Vector2(140, 100)
+script = ExtResource("2_terrain")
+terrain_map = ExtResource("3_map")
+chunk_cells = 20
+texture_world_size = 640.0
+exposed_rim_texture = ExtResource("5_rim")
+
+[node name="FreeCamera" type="Node2D" parent="."]
+position = Vector2(960, 540)
+script = ExtResource("4_camera")
+movement_bounds = Rect2(0, 0, 2840, 1080)
+
+[node name="Camera2D" type="Camera2D" parent="FreeCamera"]
+
+[node name="HUD" type="CanvasLayer" parent="."]
+process_mode = 3
+
+[node name="Panel" type="PanelContainer" parent="HUD"]
+offset_left = 24.0
+offset_top = 20.0
+offset_right = 1896.0
+offset_bottom = 166.0
+theme_override_styles/panel = SubResource("HudPanel")
+
+[node name="Margin" type="MarginContainer" parent="HUD/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 12
+
+[node name="Content" type="VBoxContainer" parent="HUD/Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Title" type="Label" parent="HUD/Panel/Margin/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.82, 0.42, 1)
+theme_override_font_sizes/font_size = 24
+text = "MILESTONE 14 — PRODUCTION TERRAIN LAB"
+
+[node name="Instructions" type="Label" parent="HUD/Panel/Margin/Content"]
+layout_mode = 2
+text = "1 DIG   2 MINE   3 BOMB   4 BUILD   •   Left-click/drag: apply   •   Right-click or R: exact reset   •   F3: debug view   •   WASD: scroll"
+
+[node name="Legend" type="Label" parent="HUD/Panel/Margin/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.82, 0.82, 1)
+text = "Dirt: all removal   •   Rock: Mine/Bomb   •   Bedrock: indestructible   •   Golden root weave: Constructed"
+
+[node name="StatusRow" type="HBoxContainer" parent="HUD/Panel/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 28
+
+[node name="ToolStatus" type="Label" parent="HUD/Panel/Margin/Content/StatusRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.48, 0.9, 0.68, 1)
+text = "ACTIVE TOOL: DIG"
+
+[node name="DebugStatus" type="Label" parent="HUD/Panel/Margin/Content/StatusRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "DEBUG: Off"
+
+[node name="Metrics" type="Label" parent="HUD/Panel/Margin/Content/StatusRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Metrics"
+horizontal_alignment = 2

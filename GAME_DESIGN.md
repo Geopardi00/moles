@@ -225,6 +225,36 @@ Excluded: multiple profiles, cloud synchronization, a user-facing progress reset
 
 Status: completed on 2026-09-03. The versioned progress store, active-level write gate, stable catalog identities, linear Bronze unlocks, and best-medal menu presentation are implemented. The complete Milestone 0–13 smoke suite passes. Manual visual acceptance at 1920×1080 and 1152×648 confirms fresh, locked, completed, and newly unlocked menu states are centered, readable, and unclipped.
 
+### Milestone 14 — Production Terrain and Material Pipeline
+
+Convert the proven single-material mask prototype into the production foundation for authored organic terrain. Levels must support multiple materials in one shared field, material-aware abilities, imported terrain layouts, hand-painted texture fills, and chunk-local visual/collision updates without exposing the 8 px simulation grid.
+
+The first production palette is Empty, Dirt, Rock, Bedrock, and Constructed terrain. Dirt accepts DIG, MINE, and BOMB; Rock accepts MINE and sufficiently strong BOMB effects; Bedrock rejects all current removal abilities; Constructed terrain is created by BUILD and may later be removed by DIG, MINE, or BOMB. Exact future water, heat, and electrical properties remain deferred until their simulations use them.
+
+Milestone 14 begins hand-drawn terrain production with one representative burrow biome, a small reusable texture/decal kit, and one scrolling terrain laboratory. It does not redraw the existing campaign or introduce liquids, fire, new creature abilities, or final character animation.
+
+Success criterion: an imported multi-material level remains visually organic before and after repeated excavation, preserves material rules and reset behavior, rebuilds only touched chunks, and remains stable with 30 creatures under a destruction stress pass.
+
+Status: completed on 2026-09-03. The terrain field now stores palette-backed material IDs, imports exact-color authored PNG maps, applies shared DIG/MINE/BOMB/BUILD rules, restores cached source bytes on reset, emits dirty regions, and rebuilds chunk-local collision plus padded shader visuals. The production lab demonstrates organic caves, overhangs, islands, scrolling, live edits, timing, and four debug views using Dirt, Rock, Bedrock, Constructed, exposed-rim art, and eight transparent decals. The complete Milestone 0–14 smoke suite passes; a 30-creature, 50-edit mixed-material stress run remains stable, and manual acceptance at 1920×1080 and 1152×648 confirms readable UI, organic fresh cuts, and seamless chunk boundaries.
+
+### Milestone 15 — Environmental Reactions Sandbox (planned)
+
+Add deterministic, bounded environmental simulation on top of the production terrain field. Implement a chunked liquid layer capable of carrying typed liquids but tune only water initially. Water flows into terrain openings, interacts with sources, drains, reservoirs, pumps, and valves, and freezes correctly with pause and simulation speed controls.
+
+Replace BOMB's direct terrain edit with a reusable explosion event carrying position, radius, strength, and heat. Add material-dependent blast resistance, destructible scene props, bounded fire spread across explicitly flammable targets, explosion ignition, and water extinguishing. Validate the systems in a resettable chain-reaction laboratory rather than a production level.
+
+Success criterion: a repeatable explosion breaches a reservoir, water reacts to the new terrain opening, and the resulting flow changes or extinguishes a fire hazard with deterministic results, complete restart restoration, and stable 1×/2×/4× simulation.
+
+### Milestone 16 — First Production Vertical Slice (planned)
+
+Build the first production-quality 8–12 minute level after Milestones 14 and 15 pass their technical and visual gates. The recommended sequence is: BOMB breaches a resistant wall and releases water; one mole uses the new SWIM ability to reach a pressure plate or valve; redirected water extinguishes a fire blocking the colony; an existing construction or excavation ability opens the final route.
+
+This milestone adds final-quality hand-painted terrain, background, foreground, props, environmental effects, audio, and gameplay-ready character sprites for the states used by the slice. Character animation is isolated behind a visual component and does not change collision or deterministic movement. Required animations are idle/walk, fall/land, swim, the selected existing ability actions, exit, and death; unused legacy actions may retain placeholders until later production milestones.
+
+Success criterion: first-time players can read the materials, understand the environmental chain, and finish the authored puzzle without developer explanation; no placeholder visuals remain on its intended route; the level remains stable with 30 creatures, active environmental simulation, pause, 4× speed, restart, medals, and progression.
+
+CLIMB, rope/ladder traversal, additional liquids/materials, and campaign-wide art replacement follow the vertical slice rather than expanding its scope.
+
 ## 8. Decisions already made
 
 - Godot 4.6, GDScript, and 2D
@@ -264,6 +294,8 @@ Status: completed on 2026-09-03. The versioned progress store, active-level writ
 - BLOCK targeting accepts a `WALKING` creature. The blocker becomes stationary for a fixed duration and enables a non-physical `Area2D` that reverses only walkers approaching from either side. Blocking duration and redirection freeze with the simulation; the assigned creature returns to `WALKING` when time expires.
 - BOMB targeting accepts a `WALKING` creature only when destructible material is found within several probes ahead of its facing direction. The creature remains stationary through a paused-aware fuse; detonation excavates a circular region centered ahead of that direction, rebuilds touched collision chunks, and registers the bomber as lost after the terrain mutation.
 - Destructible terrain will proceed from the custom fine-resolution mask with chunk-local collision rebuilding tested in Milestone 3. Visual rendering remains separate from mask/material data. Collision is generated only for exposed boundaries, merged into collinear segments within each touched chunk.
+- Production terrain reserves material ID `0` for Empty and begins with stable IDs `1 Dirt`, `2 Rock`, `3 Bedrock`, and `4 Constructed`. Ability acceptance is owned by these material definitions so targeting and mutation share one rule source.
+- Authored terrain uses exact-color, lossless palette PNGs at one source pixel per 8×8 world cell. CPU material/collision chunks remain authoritative; one-cell-padded GPU visual chunks provide seamless hand-painted fills, organic contour warping, and exposed-rim treatment without changing physics.
 - The world uses normal pausable processing. Simulation control, HUD, and camera use `PROCESS_MODE_ALWAYS` so they remain interactive while `SceneTree.paused` freezes the world.
 - Simulation rates use `Engine.time_scale` values of 1, 2, and 4. Pause uses `SceneTree.paused`, not a zero time scale.
 - Camera travel is measured using real elapsed time so camera speed does not change with simulation speed.
@@ -346,7 +378,66 @@ MovementTest (Node2D)
 5. Add pause/speed controller and an always-processing HUD; verify the world freezes while camera/UI still work.
 6. Run the full test room and automated 30-creature smoke test.
 
-## 13. Changelog / decision log
+## 13. Milestone 14 implementation plan
+
+### Goal and boundaries
+
+Milestone 14 upgrades `ChunkedMaskTerrain` from a binary occupancy field with one color/material per node into an authored multi-material terrain system. Existing DIG, MINE, BUILD, and BOMB puzzles must keep their accepted behavior while the new terrain laboratory proves the production path.
+
+Included: multi-material data, imported material maps, ability/material rules, hand-painted terrain rendering, visual edge treatment, chunk-local updates, authoring/debug tools, migration compatibility, automated stress coverage, and manual visual acceptance.
+
+Excluded: liquid simulation, fire/heat propagation, new abilities, final character sprites, campaign-wide level conversion, granular sand, decoration physics, and production audio.
+
+### Terrain data and public interfaces
+
+- Add a `TerrainMaterialDefinition` resource with a stable byte-sized ID, display/debug color, DIG/MINE compatibility, blast resistance, and an indestructible flag. Do not add speculative water, heat, or electrical fields until Milestone 15 consumes them.
+- Add a `TerrainMaterialPalette` resource that owns unique material definitions and validates reserved ID `0` as Empty. The initial IDs are `1 Dirt`, `2 Rock`, `3 Bedrock`, and `4 Constructed`.
+- Replace the terrain node's binary `_solid` array with a `PackedByteArray` of per-cell material IDs. Keep the 8 px default cell size and current chunk-local boundary collision strategy.
+- Preserve compatibility helpers such as `get_material_at()`, `excavate_circle()`, and `fill_rectangle()` while routing them through material-aware operations. Add explicit operation queries so targeting and mutation use the same rule: DIG removes Dirt/Constructed; MINE removes Dirt/Rock/Constructed; BOMB compares strength against blast resistance; BUILD writes Constructed only into Empty cells.
+- Emit a terrain-region-changed signal containing the dirty cell bounds after a successful edit. Future water simulation will query that region instead of coupling itself to DIG, MINE, BUILD, or BOMB.
+- Keep procedural `WAVY_GROUND`, `SOLID_RECTANGLE`, and `EMPTY` initialization for existing levels/tests. Add an authored-map source mode rather than forcing immediate campaign migration.
+
+### Authored map and art contract
+
+- Add a `TerrainMapDefinition` resource referencing a lossless, nearest-filtered palette PNG plus its palette. One source pixel represents one 8×8 world-cell and must map exactly to Empty, Dirt, Rock, Bedrock, or Constructed; unknown colors fail validation instead of silently becoming terrain.
+- Convert the source image into cached material bytes when the terrain initializes. Reset restores that original byte buffer exactly.
+- Render terrain as chunk visuals driven by material-ID/occupancy textures. CPU code owns terrain data and collision; a CanvasItem shader owns material fill selection, anti-aliased occupancy edges, subtle contour noise, and exposed-edge/rim treatment.
+- Give each visual chunk a one-cell sampling border so filtering and edge treatment remain seamless across chunk boundaries. Only dirty chunks update after terrain edits.
+- Use seamless hand-painted fill textures rather than small terrain tiles. Surface roots, stones, grass, cracks, and similar details remain separate transparent decals so the internal grid never dictates the illustration style.
+- Author art at native game density with larger source masters retained outside runtime exports. The first runtime kit should contain seamless Dirt, Rock, and Bedrock fills (recommended 1024×1024 PNGs), one Constructed fill, one exposed-earth/rim texture, 6–10 transparent detail decals, and a small palette/style reference sheet.
+- Do not bake collision outlines, ability rules, lighting, large unique level silhouettes, or background scenery into the reusable fill textures.
+
+### Integration and migration
+
+- Move material acceptance decisions out of `GameplayLevel` probe assumptions and into terrain operation queries while preserving the existing player-facing targeting rules and inventory consumption guarantees.
+- Give BOMB an explicit provisional strength sufficient for Dirt and Rock but never Bedrock. Milestone 15 will promote this edit into a reusable explosion event without changing the material result.
+- Make BUILD write Constructed material through the shared terrain API. Existing separate build-terrain nodes may remain during migration, but their data and rendering use the same palette and operation rules.
+- Convert only the new terrain laboratory to authored-map initialization. Existing six puzzle levels keep procedural sources unless a minimal compatibility migration is required by the refactor.
+- Add debug toggles for material IDs/colors, collision contours, chunk boundaries, dirty chunks, and last/total rebuild timing. Debug presentation must never affect exported gameplay behavior.
+
+### Implementation order
+
+1. Add and validate material and palette resources; convert binary occupancy to material bytes while keeping all current tests green.
+2. Centralize operation compatibility and migrate DIG, MINE, BUILD, and BOMB queries/mutations without changing puzzle outcomes.
+3. Add authored palette-map initialization, exact reset, and invalid-map diagnostics.
+4. Add chunk-based material texture rendering and shader-driven fill/edge treatment with temporary textures.
+5. Integrate the first hand-painted terrain kit and tune scale, repetition, edge softness, contour noise, and chunk seams.
+6. Build the scrolling production terrain laboratory and add authoring/debug controls.
+7. Run regression, destruction stress, performance measurement, and manual visual acceptance before declaring the pipeline ready for environmental simulation.
+
+### Automated and manual acceptance
+
+- Verify palette validation, unique/nonzero IDs, exact color-to-material import, invalid-color rejection, material lookup, and exact reset.
+- Verify the complete operation matrix, including rejected targets consuming no inventory and Bedrock surviving every current ability.
+- Verify only touched chunks rebuild after circular removal and rectangular construction, including edits crossing chunk boundaries.
+- Verify imported overhangs, caves, isolated islands, map edges, and empty regions generate stable collision.
+- Extend the 30-creature terrain stress test with at least 50 mixed DIG/MINE/BOMB edits across multiple materials and record average/worst rebuild time and dirty-chunk count.
+- Run the full Milestone 0–13 smoke suite unchanged, then add a Milestone 14 smoke test covering the new pipeline.
+- At both 1920×1080 and 1152×648, inspect intact terrain, fresh cuts, overlapping cuts, material boundaries, chunk seams, camera scrolling, and reset. Normal play must not reveal obvious 8 px squares or visual/collision disagreement.
+
+Milestone 14 is complete only when the temporary shader textures can be replaced by the first hand-painted kit without code or collision changes.
+
+## 14. Changelog / decision log
 
 - 2026-08-14: Established the initial game concept, locked design pillars, terrain philosophy, and milestone roadmap from the project brief.
 - 2026-08-14: Confirmed Milestone 0 collision layers and a pause architecture based on `SceneTree.paused` plus always-processing control nodes.
@@ -377,3 +468,5 @@ MovementTest (Node2D)
 - 2026-09-01: Defined Milestone 12 around explicit per-level Bronze, Silver, and Gold rescue-count thresholds. Bronze becomes the success requirement; persistence, unlocking, and non-rescue medal constraints remain deferred.
 - 2026-09-02: Implemented and accepted Milestone 12 medal configuration, validation, outcome evaluation, HUD presentation, and resource migration. The complete Milestone 0–12 smoke suite passes, and rendered visual testing confirms the HUD and result overlay remain readable and unclipped.
 - 2026-09-03: Implemented and accepted Milestone 13 persistent medal progression. Stable level IDs, a versioned local progress store, active-level write isolation, monotonic best medals, linear Bronze unlocks, and progression-aware catalog presentation pass the complete Milestone 0–13 smoke suite and manual visual acceptance at both target window sizes.
+- 2026-09-03: Defined Milestones 14–16 as the production-terrain pipeline, environmental-reactions sandbox, and first production vertical slice. Hand-drawn terrain begins with a constrained Milestone 14 kit; gameplay character sprites and required state animations enter with the Milestone 16 vertical slice.
+- 2026-09-03: Implemented and accepted Milestone 14. Exact-color authored material maps, shared operation rules, cached reset data, padded chunk shaders, a scrolling production terrain lab, five seamless terrain textures, eight transparent decals, and expanded automated stress coverage establish the production terrain foundation for Milestone 15 environmental reactions.
